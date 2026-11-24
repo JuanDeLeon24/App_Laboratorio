@@ -73,6 +73,13 @@ data class SampleForm(
     val labTestId: String = "",
     val observations: String = "",
     val elaboratedBy: String = "",
+    // Campos del encabezado y pie del formato Excel 'Cono de arena'
+    val prInicial: String = "",
+    val prFinal: String = "",
+    val lado: String = "",
+    val registro: String = "",
+    val irregularidades: String = "",
+    val aprobo: String = "",
     val custom: Map<String, String> = emptyMap(),
 ) {
     fun toInputs() = LegacyInputs(
@@ -85,7 +92,7 @@ data class SampleForm(
 
 /** Campos contextuales que se pueden copiar al duplicar una muestra (nunca mediciones ni resultados). */
 enum class DuplicableField(val label: String) {
-    JOURNEY("Jornada"), ORIGIN("Procedencia"), LOCATION("Localización"), SIDE("Costado"), LAYER("Capa"),
+    HEADER("Encabezado (PR inicial/final, lado, fecha, registro)"), JOURNEY("Jornada"), ORIGIN("Procedencia"), LOCATION("Localización"), SIDE("Costado"), LAYER("Capa"),
     THICKNESS("Espesor"), FILL_PART("Parte del relleno"), MATERIAL("Material"), CALIBRATION("Equipo y calibración"),
     LAB_REF("Referencia de laboratorio"), LOT("Lote"),
 }

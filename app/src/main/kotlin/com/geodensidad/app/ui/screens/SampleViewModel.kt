@@ -42,6 +42,8 @@ class SampleViewModel(private val c: AppContainer, private val h: SavedStateHand
     val journeys = sample.filterNotNull().map { it.activityId }.distinctUntilChanged().flatMapLatest { c.db.journeys().observeByActivity(it) }.state(emptyList())
     val lots = sample.filterNotNull().map { it.activityId }.distinctUntilChanged().flatMapLatest { c.db.lots().observeByActivity(it) }.state(emptyList())
 
+    val projectName = sample.filterNotNull().map { it.activityId }.distinctUntilChanged()
+        .map { aid -> c.db.activities().get(aid)?.let { a -> c.db.projects().get(a.projectId)?.let { "${it.code} – ${it.name}".trim(' ', '–') } } ?: "—" }.state("—")
     val form = MutableStateFlow<SampleForm?>(null)
     val texts = MutableStateFlow<Map<String, String>>(emptyMap())
     val result = form.filterNotNull().map { ConoArenaLegacy.calculate(it.toInputs()) }.state(null)

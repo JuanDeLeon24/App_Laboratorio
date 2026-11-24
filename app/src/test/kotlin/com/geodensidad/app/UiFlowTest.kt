@@ -54,15 +54,15 @@ class UiFlowTest {
         shot("03_actividad")
         rule.onNodeWithText("DEN-0001", substring = true).performClick()
         waitText("Revisión 1")
-        rule.onNodeWithText("Abscisa *").performTextReplacement("PR 003+150")
         fun num(label: String, v: String) {
             val m = hasText(label, substring = true) and hasSetTextAction()
             rule.onAllNodes(hasScrollToNodeAction())[0].performScrollToNode(m)
             rule.onNode(m).performTextReplacement(v)
         }
+        num("PR *", "PR 003+150")
         num("D · Constante del cono", "1735"); num("F · Densidad de la arena", "1,396")
-        num("A · Masa inicial", "7139"); num("B · Masa final", "3317"); num("J · Masa húmeda", "3694"); num("H · Masa retenida", "410"); num("L · Humedad total", "6")
-        num("Q · Densidad seca máxima", "2495"); num("R · Humedad óptima", "6,68")
+        num("A · Peso frasco y arena inicial", "7139"); num("B · Peso frasco y arena restante", "3317"); num("J · Peso material extraído", "3694"); num("H · Material retenido", "410"); num("L · Humedad", "6")
+        num("Q · Densidad máxima", "2495"); num("R · Humedad óptima", "6,68")
         rule.onAllNodes(hasScrollToNodeAction())[0].performScrollToIndex(0)
         waitText("91,98 %")
         rule.onNodeWithText("2.294,97 kg/m³").assertExists()

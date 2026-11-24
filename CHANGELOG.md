@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.0 — ajuste posterior
+- El formulario de muestra pide exactamente los campos del Excel 'Cono de arena' (encabezado, densidad, filas A–R, irregularidades >15 mm, observaciones, elaboró, aprobó), con sus nombres y orden. Nuevos campos: PR inicial, PR final, Lado, Registro, N° irregularidades >15 mm y Aprobó. El PDF individual los incluye.
+- La fecha del ensayo es solo fecha, como en el formato.
+
 ## 1.0.0 (versionCode 1) — 2026-11-24
 
 Versiones independientes: app 1.0.0 · base de datos v1 · motor `cono-arena-legacy-1.0.0` · plantilla PDF 1.0.0 · formato de respaldo v1 · criterio `LEGACY-DM-KS` v1.0.0 (no validado).

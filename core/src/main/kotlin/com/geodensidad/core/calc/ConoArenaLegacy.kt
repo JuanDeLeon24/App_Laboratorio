@@ -202,16 +202,16 @@ object StepDefs {
 object InputDefs {
     data class Def(val symbol: String, val name: String, val unit: String, val note: String? = null)
     val list = listOf(
-        Def("A", "Masa inicial de frasco y arena", "g"),
-        Def("B", "Masa final de frasco y arena", "g"),
+        Def("A", "Peso frasco y arena inicial", "g"),
+        Def("B", "Peso frasco y arena restante", "g"),
         Def("D", "Constante del cono", "g"),
         Def("F", "Densidad de la arena", "g/cm³"),
-        Def("H", "Masa retenida en tamiz de ¾″", "g"),
-        Def("I", "Parámetro bulk (heredado)", "adimensional ×1000 kg/m³",
+        Def("H", "Material retenido en 3/4", "g"),
+        Def("I", "Gravedad específica bulk", "g/cm³ (usado como I×1000 kg/m³)",
             "El Excel lo denomina 'gravedad específica bulk' pero indica g/cm³. Se usa numéricamente como I×1000 en kg/m³. Requiere revisión técnica."),
-        Def("J", "Masa húmeda del material extraído", "g"),
-        Def("L", "Humedad total", "%", "Se digita en porcentaje y se almacena como fracción (6 % → 0,06)."),
-        Def("Q", "Densidad seca máxima de laboratorio (De)", "kg/m³"),
+        Def("J", "Peso material extraído húmedo", "g"),
+        Def("L", "Humedad", "%", "Se digita en porcentaje y se almacena como fracción (6 % → 0,06)."),
+        Def("Q", "Densidad máxima de laboratorio (De)", "kg/m³"),
         Def("R", "Humedad óptima", "%", "Se digita en porcentaje y se almacena como fracción."),
     )
     fun get(symbol: String) = list.first { it.symbol == symbol }

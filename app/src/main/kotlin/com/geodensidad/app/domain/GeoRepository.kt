@@ -95,7 +95,7 @@ class GeoRepository(val db: AppDatabase, private val settings: SettingsRepositor
             act.defaultCalibrationId?.let { form = applyCalibration(form, it) }
             act.defaultLabRefId?.let { form = applyLabRef(form, it) }
         }
-        form = form.copy(testDateTime = form.testDateTime ?: LocalDateTime.now(Clock.zone()).withNano(0).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
+        form = form.copy(testDateTime = form.testDateTime ?: LocalDate.now(Clock.zone()).toString())
         val now = Clock.nowMillis(); val id = newId(); val revId = newId()
         db.withTransaction {
             val seq = db.samples().maxSeq(activityId) + 1
@@ -199,7 +199,7 @@ class GeoRepository(val db: AppDatabase, private val settings: SettingsRepositor
         b.result.steps.filter { it.value == null && it.symbol in setOf("S", "N", "P") && it.unavailableReason?.startsWith("Faltan") == true }
             .forEach { errs += "${it.symbol}: ${it.unavailableReason}" }
         if (b.result.value("S") == null && errs.isEmpty()) errs += "No se pudo calcular la compactación"
-        if (b.form.abscisa.isBlank()) errs += "Abscisa: dato obligatorio"
+        if (b.form.abscisa.isBlank()) errs += "PR: dato obligatorio"
         db.customFields().listAll(CustomFieldEntityType.SAMPLE.name).filter { it.required && !it.archived }.forEach { f ->
             if (b.form.custom[f.key].isNullOrBlank()) errs += "${f.label}: campo obligatorio"
         }
@@ -277,6 +277,7 @@ class GeoRepository(val db: AppDatabase, private val settings: SettingsRepositor
         val f = b.form
         val act = db.activities().get(b.sample.activityId)!!
         var form = SampleForm(i = f.i ?: act.defaultBulk, elaboratedBy = settings.current().responsible)
+        if (DuplicableField.HEADER in fields) form = form.copy(prInicial = f.prInicial, prFinal = f.prFinal, lado = f.lado, registro = f.registro, testDateTime = f.testDateTime, aprobo = f.aprobo)
         if (DuplicableField.ORIGIN in fields) form = form.copy(origin = f.origin)
         if (DuplicableField.LOCATION in fields) form = form.copy(location = f.location)
         if (DuplicableField.SIDE in fields) form = form.copy(side = f.side)

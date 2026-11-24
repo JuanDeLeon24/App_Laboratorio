@@ -102,11 +102,11 @@ fun SampleScreen(nav: NavController, back: () -> Unit) {
                 Column(Modifier.padding(12.dp)) { LinearProgressIndicator(progress = { p.fraction }, Modifier.fillMaxWidth()); Row(verticalAlignment = Alignment.CenterVertically) { Text(p.message, Modifier.weight(1f)); TextButton(onClick = vm::cancelPdf) { Text("Cancelar") } } }
             } }
             item { ResultsSummary(result) }
-            item { IdentificationSection(vm, f, editable) }
-            item { LocationSection(vm, f, texts, editable) }
-            item { EquipmentSection(vm, f, texts, editable, result) }
+            item { HeaderSection(vm, f, editable) }
+            item { DensitySection(vm, f, texts, editable) }
             item { MeasurementSection(vm, texts, editable, result) }
-            item { LabSection(vm, f, texts, editable, result) }
+            item { LabSection(vm, texts, editable, result) }
+            item { FooterSection(vm, f, editable) }
             item { CustomSection(vm, f, texts, editable) }
             item { TraceSection(result) }
             item {
@@ -130,15 +130,6 @@ fun SampleScreen(nav: NavController, back: () -> Unit) {
                             }
                         }
                     }
-                }
-            }
-            item {
-                SectionCard("Observaciones y responsables", Icons.Default.Notes) {
-                    TextInput("Observaciones", f.observations, { v -> vm.update { it.copy(observations = v) } }, enabled = editable, singleLine = false, minLines = 3)
-                    TextInput("Elaboró", f.elaboratedBy, { v -> vm.update { it.copy(elaboratedBy = v) } }, enabled = editable)
-                    rev?.reviewedBy?.let { KeyValue("Revisó", "$it · ${Clock.display(rev!!.reviewedAt!!)}") }
-                    rev?.approvedBy?.let { KeyValue("Aprobó", "$it · ${Clock.display(rev!!.approvedAt!!)}") }
-                    Text("El nombre del responsable es atribución operativa local, no una firma ni autenticación.", style = MaterialTheme.typography.bodySmall, color = Condor.Steel)
                 }
             }
             item { RevisionsSection(vm, nav) }
@@ -188,84 +179,90 @@ private fun ResultsSummary(r: LegacyResult?) {
     }
 }
 
+private fun fieldError(r: LegacyResult?, sym: String) = r?.issues?.filter { it.field == sym && it.severity == Severity.BLOCKING }?.joinToString("; ") { it.message }?.ifBlank { null }
+private fun fieldWarn(r: LegacyResult?, sym: String) = r?.issues?.filter { it.field == sym && it.severity == Severity.WARNING }?.joinToString("; ") { it.message }?.ifBlank { null }
+
+/** Encabezado del formato Excel: PROYECTO, LOCALIZACIÓN, PROCEDENCIA, PR INICIAL, PR FINAL, LADO, FECHA, PARTE DEL RELLENO, LOTE, REGISTRO. */
 @Composable
-private fun IdentificationSection(vm: SampleViewModel, f: SampleForm, editable: Boolean) {
-    val journeys by vm.journeys.collectAsStateWithLifecycle()
+private fun HeaderSection(vm: SampleViewModel, f: SampleForm, editable: Boolean) {
     val lots by vm.lots.collectAsStateWithLifecycle()
     val s by vm.sample.collectAsStateWithLifecycle()
-    SectionCard("Identificación", Icons.Default.Badge) {
-        TextInput("Fecha y hora del ensayo (AAAA-MM-DDTHH:MM)", f.testDateTime ?: "", { v -> vm.update { it.copy(testDateTime = v.ifBlank { null }) } }, enabled = editable,
-            supporting = runCatching { java.time.LocalDateTime.parse(f.testDateTime) }.fold({ "Interpretado: ${Clock.displayDate(f.testDateTime)} ${f.testDateTime?.substring(11, 16)}" }, { "Formato esperado 2026-11-24T09:30" }))
-        Dropdown("Jornada", journeys, journeys.firstOrNull { it.id == s?.journeyId }, { "${Clock.displayDate(it.workDate)} · ${it.workFront.ifBlank { it.responsible }}" }, { it?.let { j -> vm.moveJourney(j.id) } }, enabled = editable, allowNone = false)
-        Dropdown("Lote de evaluación", lots, lots.firstOrNull { it.id == s?.lotId }, { it.code }, { vm.assignLot(it?.id) })
-        Text("El lote puede cambiarse también en muestras aprobadas: no modifica sus datos y queda registrado en el historial.", style = MaterialTheme.typography.bodySmall, color = Condor.Steel)
-        TextInput("Procedencia", f.origin, { v -> vm.update { it.copy(origin = v) } }, enabled = editable)
+    val project by vm.projectName.collectAsStateWithLifecycle()
+    SectionCard("Encabezado", Icons.Default.Badge) {
+        KeyValue("Proyecto", project)
         TextInput("Localización", f.location, { v -> vm.update { it.copy(location = v) } }, enabled = editable)
+        TextInput("Procedencia", f.origin, { v -> vm.update { it.copy(origin = v) } }, enabled = editable)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedTextField(f.prInicial, { v -> vm.update { it.copy(prInicial = v) } }, label = { Text("PR inicial") }, enabled = editable, singleLine = true, modifier = Modifier.weight(1f))
+            OutlinedTextField(f.prFinal, { v -> vm.update { it.copy(prFinal = v) } }, label = { Text("PR final") }, enabled = editable, singleLine = true, modifier = Modifier.weight(1f))
+        }
+        TextInput("Lado", f.lado, { v -> vm.update { it.copy(lado = v) } }, enabled = editable)
+        val dateOk = f.testDateTime.isNullOrBlank() || runCatching { java.time.LocalDate.parse(f.testDateTime!!.take(10)) }.isSuccess
+        TextInput("Fecha (AAAA-MM-DD)", f.testDateTime?.take(10) ?: "", { v -> vm.update { it.copy(testDateTime = v.ifBlank { null }) } }, enabled = editable,
+            supporting = if (dateOk) f.testDateTime?.let { Clock.displayDate(it) } else "Fecha no válida")
+        TextInput("Parte del relleno", f.fillPart, { v -> vm.update { it.copy(fillPart = v) } }, enabled = editable)
+        Dropdown("Lote", lots, lots.firstOrNull { it.id == s?.lotId }, { it.code }, { vm.assignLot(it?.id) })
+        TextInput("Registro", f.registro, { v -> vm.update { it.copy(registro = v) } }, enabled = editable)
     }
 }
 
+/** Columna de la densidad: DENSIDAD No., CAPA No., ESPESOR CAPA, PR, COSTADO. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun LocationSection(vm: SampleViewModel, f: SampleForm, texts: Map<String, String>, editable: Boolean) {
-    SectionCard("Localización", Icons.Default.Place) {
+private fun DensitySection(vm: SampleViewModel, f: SampleForm, texts: Map<String, String>, editable: Boolean) {
+    val s by vm.sample.collectAsStateWithLifecycle()
+    SectionCard("Densidad", Icons.Default.Place) {
+        KeyValue("Densidad No.", s?.code ?: "—")
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedTextField(f.layer, { v -> vm.update { it.copy(layer = v) } }, label = { Text("Capa No.") }, enabled = editable, singleLine = true, modifier = Modifier.weight(1f))
+            NumberInput("Espesor capa", texts["thickness"] ?: "", f.thicknessUnit, { vm.setNumber("thickness", it) }, Modifier.weight(1f), editable)
+        }
         val m = Abscisa.toMeters(f.abscisa)
-        TextInput("Abscisa *", f.abscisa, { v -> vm.update { it.copy(abscisa = v) } }, enabled = editable,
-            supporting = if (f.abscisa.isBlank()) "Ej.: PR 003+150" else m?.let { "Valor numérico: ${Fmt.num(it, 2)} m (${Abscisa.formatMeters(it)})" } ?: "Sin valor numérico (se conserva el texto tal cual)")
+        TextInput("PR *", f.abscisa, { v -> vm.update { it.copy(abscisa = v) } }, enabled = editable,
+            supporting = if (f.abscisa.isBlank()) "Ej.: PR 003+150" else m?.let { "Valor numérico: ${Fmt.num(it, 2)} m" } ?: "Sin valor numérico (se conserva el texto)")
         Text("Costado", style = MaterialTheme.typography.labelLarge)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             listOf("Izquierdo", "Eje", "Derecho").forEach { o -> FilterChip(f.side == o, { if (editable) vm.update { it.copy(side = if (it.side == o) "" else o) } }, label = { Text(o) }, enabled = editable) }
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedTextField(f.layer, { v -> vm.update { it.copy(layer = v) } }, label = { Text("Capa No.") }, enabled = editable, singleLine = true, modifier = Modifier.weight(1f))
-            NumberInput("Espesor", texts["thickness"] ?: "", f.thicknessUnit, { vm.setNumber("thickness", it) }, Modifier.weight(1f), editable)
-        }
-        TextInput("Parte del relleno", f.fillPart, { v -> vm.update { it.copy(fillPart = v) } }, enabled = editable, supporting = "Ej.: Núcleo, Corona")
     }
 }
 
-private fun fieldError(r: LegacyResult?, sym: String) = r?.issues?.filter { it.field == sym && it.severity == Severity.BLOCKING }?.joinToString("; ") { it.message }?.ifBlank { null }
-private fun fieldWarn(r: LegacyResult?, sym: String) = r?.issues?.filter { it.field == sym && it.severity == Severity.WARNING }?.joinToString("; ") { it.message }?.ifBlank { null }
-
-@Composable
-private fun EquipmentSection(vm: SampleViewModel, f: SampleForm, texts: Map<String, String>, editable: Boolean, r: LegacyResult?) {
-    val cals by vm.calibrations.collectAsStateWithLifecycle()
-    val eqs by vm.equipment.collectAsStateWithLifecycle()
-    SectionCard("Equipo y calibración", Icons.Default.Build) {
-        Dropdown("Calibración (propone D y F)", cals.filter { !it.archived || it.id == f.calibrationId }, cals.firstOrNull { it.id == f.calibrationId },
-            { c -> "${c.code} · ${eqs.firstOrNull { it.id == c.equipmentId }?.code ?: ""} · ${c.date}" }, { vm.applyCalibration(it?.id) }, enabled = editable)
-        cals.firstOrNull { it.id == f.calibrationId }?.validUntil?.let { v -> if (v < java.time.LocalDate.now().toString()) Banner("Calibración vencida el ${Clock.displayDate(v)}", Condor.Warn) }
-        NumberInput(InputDefs.get("D").name, texts["d"] ?: "", "g", { vm.setNumber("d", it) }, enabled = editable, symbol = "D", error = fieldError(r, "D"))
-        NumberInput(InputDefs.get("F").name, texts["f"] ?: "", "g/cm³", { vm.setNumber("f", it) }, enabled = editable, symbol = "F", error = fieldError(r, "F"), hint = fieldWarn(r, "F"))
-        NumberInput(InputDefs.get("I").name, texts["i"] ?: "", "×1000 kg/m³", { vm.setNumber("i", it) }, enabled = editable, symbol = "I", error = fieldError(r, "I"),
-            hint = fieldWarn(r, "I") ?: "Interpretación heredada pendiente de revisión técnica")
-    }
-}
-
+/** Filas A, B, D, F, H, I, J, L del formato, en el mismo orden. */
 @Composable
 private fun MeasurementSection(vm: SampleViewModel, texts: Map<String, String>, editable: Boolean, r: LegacyResult?) {
-    SectionCard("Mediciones", Icons.Default.Scale) {
-        NumberInput(InputDefs.get("A").name, texts["a"] ?: "", "g", { vm.setNumber("a", it) }, enabled = editable, symbol = "A", error = fieldError(r, "A"))
-        NumberInput(InputDefs.get("B").name, texts["b"] ?: "", "g", { vm.setNumber("b", it) }, enabled = editable, symbol = "B", error = fieldError(r, "B"),
-            hint = r?.value("C")?.let { "Arena usada C = ${Fmt.num(it, 1)} g; en el hueco E = ${Fmt.num(r.value("E"), 1)} g" })
-        NumberInput(InputDefs.get("J").name, texts["j"] ?: "", "g", { vm.setNumber("j", it) }, enabled = editable, symbol = "J", error = fieldError(r, "J"))
-        NumberInput(InputDefs.get("H").name, texts["h"] ?: "", "g", { vm.setNumber("h", it) }, enabled = editable, symbol = "H", error = fieldError(r, "H"),
-            hint = fieldWarn(r, "K") ?: r?.value("K")?.let { "Retenido K = ${Fmt.num(it, 2)} %" })
-        NumberInput("${InputDefs.get("L").name} (en porcentaje)", texts["l"] ?: "", "%", { vm.setNumber("l", it) }, enabled = editable, symbol = "L", error = fieldError(r, "L"),
-            hint = fieldWarn(r, "L") ?: "Digite 6 para 6 % (se guarda como 0,06)")
+    @Composable fun field(sym: String, key: String, unit: String, hint: String? = null) =
+        NumberInput(InputDefs.get(sym).name, texts[key] ?: "", unit, { vm.setNumber(key, it) }, enabled = editable, symbol = sym, error = fieldError(r, sym), hint = fieldWarn(r, sym) ?: hint)
+    SectionCard("Datos del ensayo", Icons.Default.Scale) {
+        field("A", "a", "g")
+        field("B", "b", "g", r?.value("C")?.let { "C · Peso arena total usada = ${Fmt.num(it, 1)} g" })
+        field("D", "d", "g", r?.value("E")?.let { "E · Peso arena en el hueco = ${Fmt.num(it, 1)} g" })
+        field("F", "f", "g/cm³", r?.value("G")?.let { "G · Volumen del hueco = ${Fmt.num(it, 2)} cm³" })
+        field("H", "h", "g")
+        field("I", "i", "g/cm³")
+        field("J", "j", "g", r?.value("K")?.let { "K · % retenido 3/4 = ${Fmt.num(it, 2)} %" })
+        field("L", "l", "%", "Digite 6 para 6 % (el Excel lo guarda como 0,06)")
     }
 }
 
+/** Filas Q y R del formato. */
 @Composable
-private fun LabSection(vm: SampleViewModel, f: SampleForm, texts: Map<String, String>, editable: Boolean, r: LegacyResult?) {
-    val labs by vm.labRefs.collectAsStateWithLifecycle()
-    val mats by vm.materials.collectAsStateWithLifecycle()
-    SectionCard("Referencia de laboratorio y material", Icons.Default.Biotech) {
-        Dropdown("Material", mats.filter { !it.archived || it.id == f.materialId }, mats.firstOrNull { it.id == f.materialId }, { "${it.code} – ${it.name}" }, { m -> vm.update { it.copy(materialId = m?.id) } }, enabled = editable)
-        Dropdown("Referencia (propone Q y R)", labs.filter { !it.archived || it.id == f.labRefId }, labs.firstOrNull { it.id == f.labRefId }, { "${it.code} · ${it.testId}" }, { vm.applyLabRef(it?.id) }, enabled = editable)
-        TextInput("Identificación del ensayo de laboratorio", f.labTestId, { v -> vm.update { it.copy(labTestId = v) } }, enabled = editable)
+private fun LabSection(vm: SampleViewModel, texts: Map<String, String>, editable: Boolean, r: LegacyResult?) {
+    SectionCard("Laboratorio", Icons.Default.Biotech) {
         NumberInput(InputDefs.get("Q").name, texts["q"] ?: "", "kg/m³", { vm.setNumber("q", it) }, enabled = editable, symbol = "Q", error = fieldError(r, "Q"))
-        NumberInput("Humedad óptima (en porcentaje)", texts["r"] ?: "", "%", { vm.setNumber("r", it) }, enabled = editable, symbol = "R", error = fieldError(r, "R"),
-            hint = r?.value("ΔW")?.let { "Diferencia con la humedad de campo: ${Fmt.num(it, 2)} puntos %" })
+        NumberInput("Humedad óptima", texts["r"] ?: "", "%", { vm.setNumber("r", it) }, enabled = editable, symbol = "R", error = fieldError(r, "R"), hint = "Digite 6,68 para 6,68 %")
+    }
+}
+
+/** Pie del formato: N° IRREGULARIDADES >15mm, OBSERVACIONES, ELABORÓ, APROBÓ. */
+@Composable
+private fun FooterSection(vm: SampleViewModel, f: SampleForm, editable: Boolean) {
+    val rev by vm.currentRevision.collectAsStateWithLifecycle()
+    SectionCard("Observaciones y firmas", Icons.Default.Notes) {
+        TextInput("N° irregularidades >15 mm", f.irregularidades, { v -> vm.update { it.copy(irregularidades = v) } }, enabled = editable)
+        TextInput("Observaciones", f.observations, { v -> vm.update { it.copy(observations = v) } }, enabled = editable, singleLine = false, minLines = 3)
+        TextInput("Elaboró (nombre)", f.elaboratedBy, { v -> vm.update { it.copy(elaboratedBy = v) } }, enabled = editable)
+        TextInput("Aprobó (nombre)", f.aprobo, { v -> vm.update { it.copy(aprobo = v) } }, enabled = editable)
+        rev?.approvedBy?.let { KeyValue("Aprobación registrada", "$it · ${Clock.display(rev!!.approvedAt!!)}") }
     }
 }
 
