@@ -26,6 +26,8 @@ data class BackupManifest(
     val createdAt: String,
     val encrypted: Boolean = false,
     val counts: Map<String, Int> = emptyMap(),
+    /** Directorio de datos de origen: permite reubicar rutas absolutas al restaurar en otro paquete/dispositivo. */
+    val sourceFilesDir: String? = null,
     val files: List<BackupFile>,
 )
 
