@@ -40,6 +40,7 @@ interface ActivityDao {
            WHERE a.status IN ('OPEN','PAUSED') ORDER BY a.last_opened_at DESC"""
     )
     fun observeOpen(): Flow<List<ActivityWithProject>>
+    @Query("SELECT id FROM activities WHERE status IN ('OPEN','PAUSED') ORDER BY created_at") suspend fun listOpenIds(): List<String>
     @Insert suspend fun insert(a: ActivityEntity)
     @Update suspend fun update(a: ActivityEntity)
     @Query("UPDATE activities SET last_opened_at = :t WHERE id = :id") suspend fun touch(id: String, t: Long)

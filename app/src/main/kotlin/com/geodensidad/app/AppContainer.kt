@@ -9,6 +9,8 @@ import com.geodensidad.app.domain.DemoLoader
 import com.geodensidad.app.domain.GeoRepository
 import com.geodensidad.app.domain.SettingsRepository
 import com.geodensidad.app.evidence.EvidenceRepository
+import com.geodensidad.app.report.AndroidPdfWriter
+import com.geodensidad.app.report.PdfWriterTarget
 import com.geodensidad.app.report.ReportService
 import com.geodensidad.app.report.TemplateService
 import kotlinx.coroutines.CoroutineScope
@@ -29,14 +31,27 @@ class AppContainer(val context: Context) {
     @Volatile private var _db: AppDatabase? = null
     val db: AppDatabase get() = _db ?: synchronized(this) { _db ?: AppDatabase.build(context).also { _db = it } }
 
-    val repo by lazy { GeoRepository(db, settings) }
-    val evidence by lazy { EvidenceRepository(context, repo) }
-    val templates by lazy { TemplateService(context, repo) }
-    val reports by lazy { ReportService(context, repo, templates, settings) }
-    val backups by lazy { BackupService(context, { db }, { closeDb() }) }
-    val demo by lazy { DemoLoader(repo) }
+    /** Fábrica del escritor PDF (inyectable en pruebas; en la app, PdfDocument nativo). */
+    var pdfWriterFactory: () -> PdfWriterTarget = { AndroidPdfWriter() }
 
-    fun closeDb() = synchronized(this) { _db?.close(); _db = null }
+    /** Servicios ligados a la instancia de base abierta; se recrean si la base se cierra y reabre. */
+    private class Services(val repo: GeoRepository, val evidence: EvidenceRepository, val templates: TemplateService, val reports: ReportService, val demo: DemoLoader)
+    @Volatile private var services: Services? = null
+    private fun services(): Services = services ?: synchronized(this) {
+        services ?: run {
+            val r = GeoRepository(db, settings)
+            val t = TemplateService(context, r)
+            Services(r, EvidenceRepository(context, r), t, ReportService(context, r, t, settings) { pdfWriterFactory() }, DemoLoader(r))
+        }.also { services = it }
+    }
+    val repo get() = services().repo
+    val evidence get() = services().evidence
+    val templates get() = services().templates
+    val reports get() = services().reports
+    val demo get() = services().demo
+    val backups by lazy { BackupService(context, { db }, { closeDb() }) }
+
+    fun closeDb() = synchronized(this) { _db?.close(); _db = null; services = null }
 
     /** Comprueba la versión de la base ANTES de abrir Room y fuerza la apertura (migraciones). */
     suspend fun open(): DbCheck = withContext(Dispatchers.IO) {

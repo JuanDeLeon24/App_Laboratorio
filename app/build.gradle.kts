@@ -59,7 +59,7 @@ android {
     }
     kotlinOptions { jvmTarget = "17" }
     buildFeatures { compose = true; buildConfig = true }
-    testOptions { unitTests { isIncludeAndroidResources = true } }
+    testOptions { unitTests { isIncludeAndroidResources = true; all { it.systemProperty("geodensidad.outDir", layout.buildDirectory.dir("ejemplos").get().asFile.absolutePath); it.maxHeapSize = "3g"; it.systemProperty("robolectric.pixelCopyRenderMode", "hardware") } } }
     packaging { resources.excludes += setOf("/META-INF/{AL2.0,LGPL2.1}", "META-INF/versions/9/OSGI-INF/MANIFEST.MF") }
 }
 
@@ -90,10 +90,15 @@ dependencies {
     implementation(libs.androidx.exifinterface)
     implementation(libs.coil.compose)
     debugImplementation(libs.androidx.compose.ui.tooling)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
 
     testImplementation(libs.junit)
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(libs.pdfbox)
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.test.core)
     testImplementation(libs.androidx.room.testing)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(platform(libs.androidx.compose.bom))
+    testImplementation(libs.androidx.compose.ui.test.junit4)
 }

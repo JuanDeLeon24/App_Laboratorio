@@ -13,6 +13,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import com.geodensidad.app.data.DbCheck
 import com.geodensidad.app.ui.AppNavHost
 import com.geodensidad.app.ui.theme.Condor
@@ -22,10 +24,13 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val container = (application as GeoDensidadApp).container
+        // La apertura (y posible migración) de la base se hace fuera del hilo principal;
+        // el resultado se publica siempre en el hilo principal.
+        val dbState = mutableStateOf<Result<DbCheck>?>(null)
+        lifecycleScope.launch { dbState.value = runCatching { container.open() } }
         setContent {
             GeoTheme {
-                var state by remember { mutableStateOf<Result<DbCheck>?>(null) }
-                LaunchedEffect(Unit) { state = runCatching { container.open() } }
+                val state by dbState
                 when (val s = state) {
                     null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
                     else -> {

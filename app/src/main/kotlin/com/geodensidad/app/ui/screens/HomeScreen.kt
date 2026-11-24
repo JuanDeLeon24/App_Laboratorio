@@ -26,11 +26,14 @@ import com.geodensidad.app.ui.components.*
 import com.geodensidad.app.ui.theme.Condor
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 class HomeViewModel(private val c: AppContainer) : ViewModel() {
-    val projects = c.db.projects().observe().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val showArchived = MutableStateFlow(false)
+    val projects = showArchived.flatMapLatest { c.db.projects().observe(it) }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     val openActivities = c.db.activities().observeOpen().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     val busy = MutableStateFlow(false)
     val message = MutableStateFlow<String?>(null)
@@ -82,7 +85,7 @@ fun HomeScreen(nav: NavController) {
                 }
             }
         },
-        floatingActionButton = { ExtendedFloatingActionButton(onClick = { newProject = true }, icon = { Icon(Icons.Default.Add, null) }, text = { Text("Nuevo proyecto") }) },
+        floatingActionButton = { LabeledFab("Nuevo proyecto", Icons.Default.Add, { newProject = true }) },
         snackbarHost = { SnackbarHost(snack) },
     ) { pad ->
         LazyColumn(Modifier.padding(pad).fillMaxSize(), contentPadding = PaddingValues(bottom = 96.dp)) {
@@ -94,7 +97,13 @@ fun HomeScreen(nav: NavController) {
                     }
                 }
             }
-            item { Text("Proyectos", style = MaterialTheme.typography.titleSmall, color = Condor.Steel, modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 4.dp)) }
+            item {
+                val arch by vm.showArchived.collectAsStateWithLifecycle()
+                Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text("Proyectos", style = MaterialTheme.typography.titleSmall, color = Condor.Steel, modifier = Modifier.weight(1f))
+                    FilterChip(arch, { vm.showArchived.value = !arch }, { Text("Mostrar archivados") })
+                }
+            }
             if (projects.isEmpty()) item {
                 EmptyState(Icons.Default.FolderOpen, "Sin proyectos", "Cree un proyecto para empezar. También puede cargar un proyecto demostrativo (separado de los datos reales) desde el menú.")
             }
@@ -130,7 +139,7 @@ private fun ProjectRow(p: ProjectEntity, onClick: () -> Unit) {
         headlineContent = { Text(p.name) },
         supportingContent = { Text(listOf(p.code, p.client, p.location).filter { it.isNotBlank() }.joinToString(" · ")) },
         leadingContent = { Icon(if (p.isDemo) Icons.Default.Science else Icons.Default.Engineering, null, tint = Condor.Navy) },
-        trailingContent = { if (p.isDemo) Pill("DEMO", null, Condor.Warn) },
+        trailingContent = { if (p.status == "ARCHIVED") Pill("Archivado", Icons.Default.Archive, Condor.Slate) else if (p.isDemo) Pill("DEMO", null, Condor.Warn) },
         modifier = Modifier.clickable(onClick = onClick),
     )
     HorizontalDivider()

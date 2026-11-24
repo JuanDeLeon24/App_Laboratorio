@@ -88,8 +88,7 @@ private fun SamplesTab(vm: ActivityViewModel, nav: NavController) {
             (query.isBlank() || listOfNotNull(s.code, s.abscisaText, s.side, s.layer, lotCodes[s.lotId]).any { it.contains(query, true) })
     }
     Scaffold(floatingActionButton = {
-        ExtendedFloatingActionButton(onClick = { if (busy) Unit else if (journeys.isEmpty()) needJourney = true else if (journeys.size == 1) vm.newSample(journeys.first().id) { nav.navigate(Routes.sample(it)) } else chooseJourney = true },
-            icon = { Icon(Icons.Default.Add, null) }, text = { Text("Nueva muestra") }, expanded = !busy)
+        LabeledFab("Nueva muestra", Icons.Default.Add, { if (busy) Unit else if (journeys.isEmpty()) needJourney = true else if (journeys.size == 1) vm.newSample(journeys.first().id) { nav.navigate(Routes.sample(it)) } else chooseJourney = true }, expanded = !busy)
     }) { pad ->
         LazyColumn(Modifier.padding(pad).fillMaxSize(), contentPadding = PaddingValues(bottom = 96.dp)) {
             item {
@@ -130,7 +129,7 @@ private fun JourneysTab(vm: ActivityViewModel, nav: NavController) {
     val samples by vm.samples.collectAsStateWithLifecycle()
     var edit by remember { mutableStateOf<JourneyEntity?>(null) }
     var create by remember { mutableStateOf(false) }
-    Scaffold(floatingActionButton = { ExtendedFloatingActionButton(onClick = { create = true }, icon = { Icon(Icons.Default.Add, null) }, text = { Text("Nueva jornada") }) }) { pad ->
+    Scaffold(floatingActionButton = { LabeledFab("Nueva jornada", Icons.Default.Add, { create = true }) }) { pad ->
         LazyColumn(Modifier.padding(pad).fillMaxSize(), contentPadding = PaddingValues(bottom = 96.dp)) {
             if (journeys.isEmpty()) item { EmptyState(Icons.Default.CalendarMonth, "Sin jornadas", "Registre la fecha de trabajo, el responsable y el frente.") }
             items(journeys, key = { it.id }) { j ->
@@ -176,7 +175,7 @@ private fun LotsTab(vm: ActivityViewModel, nav: NavController) {
     val lots by vm.lots.collectAsStateWithLifecycle()
     val evals by vm.lotEvaluations.collectAsStateWithLifecycle()
     var create by remember { mutableStateOf(false) }
-    Scaffold(floatingActionButton = { ExtendedFloatingActionButton(onClick = { create = true }, icon = { Icon(Icons.Default.Add, null) }, text = { Text("Nuevo lote") }) }) { pad ->
+    Scaffold(floatingActionButton = { LabeledFab("Nuevo lote", Icons.Default.Add, { create = true }) }) { pad ->
         LazyColumn(Modifier.padding(pad).fillMaxSize(), contentPadding = PaddingValues(bottom = 96.dp)) {
             item { Banner("Un lote es un conjunto EXPLÍCITO de muestras que se evalúa estadísticamente. Puede abarcar varias jornadas; una muestra pertenece a un solo lote.", Condor.Steel) }
             if (lots.isEmpty()) item { EmptyState(Icons.Default.Inventory, "Sin lotes", "Cree un lote y asígnele muestras para evaluarlas en conjunto.") }

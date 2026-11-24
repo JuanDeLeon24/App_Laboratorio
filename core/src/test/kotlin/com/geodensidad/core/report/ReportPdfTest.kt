@@ -35,16 +35,15 @@ class ReportPdfTest {
 
         @BeforeClass @JvmStatic fun setup() {
             out = File(System.getProperty("geodensidad.samplesDir") ?: "build/ejemplos-pdf").apply { mkdirs() }
-            fonts = File(ReportPdfTest::class.java.getResource("/fonts/DejaVuSans.ttf")!!.toURI()).parentFile
-            val tpl = File(ReportPdfTest::class.java.getResource("/template/logo.png")!!.toURI()).parentFile
+            fonts = PdfBoxSurface.bundledFonts()
             landscape = photo(1600, 1200, "Foto horizontal de prueba", File(out, "foto_h.jpg"))
             portrait = photo(900, 1600, "Foto vertical de prueba", File(out, "foto_v.jpg"))
             template = TemplateInfo(
                 templateVersion = "1.0.0", institution = "Construcciones El Cóndor S.A.",
                 formTitle = "DENSIDAD O MASA UNITARIA DEL SUELO EN EL TERRENO – MÉTODO DEL CONO DE ARENA (I.N.V. E – 161)",
                 docCode = "(por definir)", docVersion = "(por definir)", docDate = "(por definir)",
-                logoPath = File(tpl, "logo.png").absolutePath, logoPxW = 333, logoPxH = 120,
-                formulaImagePath = File(tpl, "formula_s.png").absolutePath, formulaPxW = 314, formulaPxH = 124,
+                logoPath = PdfBoxSurface.resourceFile("template/logo.png").absolutePath, logoPxW = 333, logoPxH = 120,
+                formulaImagePath = PdfBoxSurface.resourceFile("template/formula_s.png").absolutePath, formulaPxW = 314, formulaPxH = 124,
             )
         }
 

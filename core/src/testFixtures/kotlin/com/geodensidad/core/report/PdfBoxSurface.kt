@@ -11,7 +11,25 @@ import org.apache.pdfbox.util.Matrix
 import java.io.File
 
 /** Superficie PDFBox SOLO para pruebas JVM y generación de ejemplos; la app usa android.graphics.pdf. */
-class PdfBoxSurface(fontDir: File) : PdfSurface, AutoCloseable {
+class PdfBoxSurface(fontDir: File = bundledFonts()) : PdfSurface, AutoCloseable {
+    companion object {
+        /** Fuentes DejaVu incluidas en los recursos de prueba (licencia en geodensidad-test-fonts/LICENSE-DejaVu.txt). */
+        fun bundledFonts(): File {
+            val dir = File(System.getProperty("java.io.tmpdir"), "geodensidad-fonts").apply { mkdirs() }
+            for (n in listOf("DejaVuSans.ttf", "DejaVuSans-Bold.ttf")) {
+                val f = File(dir, n)
+                if (!f.exists()) PdfBoxSurface::class.java.getResourceAsStream("/geodensidad-test-fonts/$n")!!.use { i -> f.outputStream().use { i.copyTo(it) } }
+            }
+            return dir
+        }
+
+        /** Copia un recurso de prueba (p. ej. "template/logo.png") a un archivo temporal. */
+        fun resourceFile(path: String): File {
+            val f = File(System.getProperty("java.io.tmpdir"), "geodensidad-res/$path").apply { parentFile.mkdirs() }
+            PdfBoxSurface::class.java.getResourceAsStream("/$path")!!.use { i -> f.outputStream().use { i.copyTo(it) } }
+            return f
+        }
+    }
     val doc = PDDocument()
     private val regular = PDType0Font.load(doc, File(fontDir, "DejaVuSans.ttf"))
     private val bold = PDType0Font.load(doc, File(fontDir, "DejaVuSans-Bold.ttf"))
@@ -71,5 +89,6 @@ class PdfBoxSurface(fontDir: File) : PdfSurface, AutoCloseable {
         cs!!.drawImage(img, x, h - y - h2, w, h2)
     }
     fun save(f: File) { f.parentFile.mkdirs(); doc.save(f) }
+    fun save(out: java.io.OutputStream) = doc.save(out)
     override fun close() = doc.close()
 }

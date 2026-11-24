@@ -40,7 +40,10 @@ data class SampleReportSnapshot(val data: SampleReportData, val form: SampleForm
  * Emisión de informes. Cada emisión guarda: PDF, instantánea JSON de los datos usados, hash SHA-256
  * y registro en la tabla reports. Reabrir un informe muestra el archivo emitido; nunca se regenera.
  */
-class ReportService(private val context: Context, private val repo: GeoRepository, private val templates: TemplateService, private val settings: SettingsRepository) {
+class ReportService(
+    private val context: Context, private val repo: GeoRepository, private val templates: TemplateService, private val settings: SettingsRepository,
+    private val writerFactory: () -> PdfWriterTarget = { AndroidPdfWriter() },
+) {
     private val db = repo.db
     private val json = Json { prettyPrint = true; encodeDefaults = true }
     private val dir get() = File(context.filesDir, "reports").apply { mkdirs() }
@@ -238,7 +241,7 @@ class ReportService(private val context: Context, private val repo: GeoRepositor
                               build: (TextMeasurer) -> PageList, snapshot: String, progress: Progress): ReportEntity {
         if (context.filesDir.usableSpace < 30L * 1024 * 1024) throw DomainException("Almacenamiento insuficiente para generar el informe")
         val pdf = File(dir, "$id.pdf"); val tmp = File(dir, "$id.pdf.part"); val snap = File(dir, "$id.json")
-        val writer = AndroidPdfWriter()
+        val writer = writerFactory()
         val job = coroutineContext[kotlinx.coroutines.Job]
         try {
             progress.update("Componiendo páginas", 0.2f)

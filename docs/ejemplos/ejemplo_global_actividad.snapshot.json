@@ -1,0 +1,730 @@
+{
+    "template": {
+        "templateVersion": "1.0.0",
+        "institution": "Construcciones El Cóndor S.A.",
+        "formTitle": "DENSIDAD O MASA UNITARIA DEL SUELO EN EL TERRENO – MÉTODO DEL CONO DE ARENA (I.N.V. E – 161)",
+        "docCode": "(por definir)",
+        "docVersion": "(por definir)",
+        "docDate": "(por definir)",
+        "logoPath": "/tmp/geodensidad-res/template/logo.png",
+        "logoPxW": 333,
+        "logoPxH": 120,
+        "formulaImagePath": "/tmp/geodensidad-res/template/formula_s.png",
+        "formulaPxW": 314,
+        "formulaPxH": 124
+    },
+    "issue": {
+        "reportId": "00000000-0000-4000-8000-000000000002",
+        "reportCode": "INF-DEMO-GLOBAL-0001",
+        "issuedAtText": "24/11/2026 15:30:05 UTC−05:00",
+        "issuedBy": "Ing. Demostración",
+        "projectShort": "DEMO-VIAS",
+        "draft": false,
+        "engine": "cono-arena-legacy-1.0.0",
+        "appVersion": "1.0.0"
+    },
+    "title": "Informe global – Toma de densidades para granulares (DEMOSTRATIVO)",
+    "scopePairs": [
+        {
+            "first": "Proyecto",
+            "second": "DEMO – Vías de acceso"
+        },
+        {
+            "first": "Actividad",
+            "second": "Toma de densidades para granulares"
+        },
+        {
+            "first": "Intervalo de fechas",
+            "second": "24/11/2026 – 25/11/2026"
+        },
+        {
+            "first": "Filtros",
+            "second": "Todos los lotes y materiales; todos los estados"
+        }
+    ],
+    "executiveSummary": [
+        "10 de 11 muestras incluidas en los cálculos.",
+        "Compactación media de las incluidas: 89,907877 %.",
+        "Las evaluaciones de lote son provisionales: el criterio heredado no está validado."
+    ],
+    "coveragePairs": [
+        {
+            "first": "Registradas en el alcance",
+            "second": "11"
+        },
+        {
+            "first": "Completas / revisadas / aprobadas",
+            "second": "10"
+        },
+        {
+            "first": "Incluidas en cálculos",
+            "second": "10"
+        },
+        {
+            "first": "No incluidas (pendientes, anuladas o sin resultado)",
+            "second": "1"
+        }
+    ],
+    "sampleColumns": [
+        "Muestra",
+        "Fecha",
+        "Abscisa",
+        "Costado",
+        "Capa",
+        "Material",
+        "Lote",
+        "Di (kg/m³)",
+        "Comp. (%)",
+        "Humedad (%)",
+        "Estado"
+    ],
+    "sampleRows": [
+        [
+            "DEN-0001 (r1)",
+            "24/11/2026",
+            "PR 003+150",
+            "Derecho",
+            "2",
+            "Granular demo",
+            "L-01",
+            "2.294,97",
+            "91,98",
+            "6,00",
+            "Aprobada"
+        ],
+        [
+            "DEN-0002 (r1)",
+            "24/11/2026",
+            "PR 003+175",
+            "Derecho",
+            "2",
+            "Granular demo",
+            "L-01",
+            "2.311,55",
+            "92,65",
+            "6,20",
+            "Aprobada"
+        ],
+        [
+            "DEN-0003 (r1)",
+            "24/11/2026",
+            "PR 003+200",
+            "Derecho",
+            "2",
+            "Granular demo",
+            "L-01",
+            "2.320,71",
+            "93,01",
+            "5,80",
+            "Aprobada"
+        ],
+        [
+            "DEN-0004 (r1)",
+            "24/11/2026",
+            "PR 003+225",
+            "Derecho",
+            "2",
+            "Granular demo",
+            "L-01",
+            "2.326,30",
+            "93,24",
+            "6,00",
+            "Aprobada"
+        ],
+        [
+            "DEN-0005 (r1)",
+            "24/11/2026",
+            "PR 003+250",
+            "Derecho",
+            "2",
+            "Granular demo",
+            "L-01",
+            "2.350,70",
+            "94,22",
+            "6,00",
+            "Aprobada"
+        ],
+        [
+            "DEN-0006 (r1)",
+            "24/11/2026",
+            "PR 004+010",
+            "Derecho",
+            "2",
+            "Granular demo",
+            "L-02",
+            "2.168,97",
+            "86,93",
+            "7,50",
+            "Aprobada"
+        ],
+        [
+            "DEN-0007 (r1)",
+            "24/11/2026",
+            "PR 004+040",
+            "Derecho",
+            "2",
+            "Granular demo",
+            "L-02",
+            "2.193,20",
+            "87,90",
+            "8,00",
+            "Aprobada"
+        ],
+        [
+            "DEN-0008 (r1)",
+            "24/11/2026",
+            "PR 004+070",
+            "Derecho",
+            "2",
+            "Granular demo",
+            "L-02",
+            "2.159,25",
+            "86,54",
+            "7,60",
+            "Aprobada"
+        ],
+        [
+            "DEN-0009 (r1)",
+            "24/11/2026",
+            "Box culvert 2",
+            "Derecho",
+            "2",
+            "Granular demo",
+            "L-02",
+            "2.127,39",
+            "85,27",
+            "8,00",
+            "Aprobada"
+        ],
+        [
+            "DEN-0010 (r1)",
+            "24/11/2026",
+            "PR 004+130",
+            "Derecho",
+            "2",
+            "Granular demo",
+            "L-02",
+            "2.178,95",
+            "87,33",
+            "7,80",
+            "Aprobada"
+        ],
+        [
+            "DEN-0011 (r1)",
+            "25/11/2026",
+            "PR 004+160",
+            "Izquierdo",
+            "2",
+            "Granular demo",
+            "—",
+            "—",
+            "—",
+            "—",
+            "Borrador"
+        ]
+    ],
+    "statGroups": [
+        {
+            "title": "Material: Granular demo · Referencia: PROCTOR-DEMO-01 (n = 10)",
+            "pairs": [
+                {
+                    "first": "Observaciones (n)",
+                    "second": "10"
+                },
+                {
+                    "first": "Di media",
+                    "second": "2.243,20 kg/m³"
+                },
+                {
+                    "first": "Di mínima / máxima",
+                    "second": "2.127,39 / 2.350,70 kg/m³"
+                },
+                {
+                    "first": "Di desviación estándar (s)",
+                    "second": "84,60 kg/m³"
+                },
+                {
+                    "first": "Di coeficiente de variación",
+                    "second": "3,77 %"
+                },
+                {
+                    "first": "Compactación media",
+                    "second": "89,91 %"
+                },
+                {
+                    "first": "Compactación mínima / máxima",
+                    "second": "85,27 / 94,22 %"
+                },
+                {
+                    "first": "Compactación s",
+                    "second": "3,39 %"
+                },
+                {
+                    "first": "Humedad media",
+                    "second": "6,89 %"
+                },
+                {
+                    "first": "Diferencia media con humedad óptima",
+                    "second": "0,21 puntos % (n = 10)"
+                }
+            ],
+            "note": "Estadísticos calculados sobre las mismas 10 observaciones; no se promedian porcentajes de lotes."
+        }
+    ],
+    "charts": [
+        {
+            "title": "Compactación por secuencia de ensayo",
+            "xLabel": "Muestra (orden de ensayo)",
+            "yLabel": "Compactación (%)",
+            "series": [
+                {
+                    "name": "Compactación",
+                    "kind": "POINTS",
+                    "points": [
+                        {
+                            "x": 1.0,
+                            "y": 91.98286159035183,
+                            "label": "DEN-0001"
+                        },
+                        {
+                            "x": 2.0,
+                            "y": 92.64747217308795,
+                            "label": "DEN-0002"
+                        },
+                        {
+                            "x": 3.0,
+                            "y": 93.01456860445178,
+                            "label": "DEN-0003"
+                        },
+                        {
+                            "x": 4.0,
+                            "y": 93.23859529196027,
+                            "label": "DEN-0004"
+                        },
+                        {
+                            "x": 5.0,
+                            "y": 94.21638112051853,
+                            "label": "DEN-0005"
+                        },
+                        {
+                            "x": 6.0,
+                            "y": 86.9328116408685,
+                            "label": "DEN-0006"
+                        },
+                        {
+                            "x": 7.0,
+                            "y": 87.90395128002179,
+                            "label": "DEN-0007"
+                        },
+                        {
+                            "x": 8.0,
+                            "y": 86.54324856998046,
+                            "label": "DEN-0008"
+                        },
+                        {
+                            "x": 9.0,
+                            "y": 85.26612835762238,
+                            "label": "DEN-0009"
+                        },
+                        {
+                            "x": 10.0,
+                            "y": 87.33275321648169,
+                            "label": "DEN-0010"
+                        }
+                    ],
+                    "color": -16045749
+                }
+            ],
+            "refLines": [
+                {
+                    "y": 95.0,
+                    "label": "α·De = 95,0 % (LEGACY-DM-KS v1.0.0, no validado)"
+                }
+            ],
+            "xCategories": {
+                "1": "DEN-0001",
+                "2": "DEN-0002",
+                "3": "DEN-0003",
+                "4": "DEN-0004",
+                "5": "DEN-0005",
+                "6": "DEN-0006",
+                "7": "DEN-0007",
+                "8": "DEN-0008",
+                "9": "DEN-0009",
+                "10": "DEN-0010"
+            },
+            "footnote": "n = 10 observaciones incluidas; 1 no incluidas."
+        },
+        {
+            "title": "Compactación por abscisa",
+            "xLabel": "Abscisa (m)",
+            "yLabel": "Compactación (%)",
+            "series": [
+                {
+                    "name": "Compactación",
+                    "kind": "POINTS",
+                    "points": [
+                        {
+                            "x": 3150.0,
+                            "y": 91.98286159035183,
+                            "label": "DEN-0001"
+                        },
+                        {
+                            "x": 3175.0,
+                            "y": 92.64747217308795,
+                            "label": "DEN-0002"
+                        },
+                        {
+                            "x": 3200.0,
+                            "y": 93.01456860445178,
+                            "label": "DEN-0003"
+                        },
+                        {
+                            "x": 3225.0,
+                            "y": 93.23859529196027,
+                            "label": "DEN-0004"
+                        },
+                        {
+                            "x": 3250.0,
+                            "y": 94.21638112051853,
+                            "label": "DEN-0005"
+                        },
+                        {
+                            "x": 4010.0,
+                            "y": 86.9328116408685,
+                            "label": "DEN-0006"
+                        },
+                        {
+                            "x": 4040.0,
+                            "y": 87.90395128002179,
+                            "label": "DEN-0007"
+                        },
+                        {
+                            "x": 4070.0,
+                            "y": 86.54324856998046,
+                            "label": "DEN-0008"
+                        },
+                        {
+                            "x": 4130.0,
+                            "y": 87.33275321648169,
+                            "label": "DEN-0010"
+                        }
+                    ],
+                    "color": -16045749
+                }
+            ],
+            "refLines": [
+                {
+                    "y": 95.0,
+                    "label": "α·De = 95,0 % (LEGACY-DM-KS v1.0.0, no validado)"
+                }
+            ],
+            "footnote": "n = 9 con abscisa numérica interpretable; 1 sin abscisa numérica."
+        },
+        {
+            "title": "Distribución de la compactación (intervalos de 1 %)",
+            "xLabel": "Compactación (%)",
+            "yLabel": "Frecuencia",
+            "series": [
+                {
+                    "name": "Frecuencia",
+                    "kind": "BARS",
+                    "points": [
+                        {
+                            "x": 85.0,
+                            "y": 1.0
+                        },
+                        {
+                            "x": 86.0,
+                            "y": 2.0
+                        },
+                        {
+                            "x": 87.0,
+                            "y": 2.0
+                        },
+                        {
+                            "x": 88.0,
+                            "y": 0.0
+                        },
+                        {
+                            "x": 89.0,
+                            "y": 0.0
+                        },
+                        {
+                            "x": 90.0,
+                            "y": 0.0
+                        },
+                        {
+                            "x": 91.0,
+                            "y": 1.0
+                        },
+                        {
+                            "x": 92.0,
+                            "y": 1.0
+                        },
+                        {
+                            "x": 93.0,
+                            "y": 2.0
+                        },
+                        {
+                            "x": 94.0,
+                            "y": 1.0
+                        }
+                    ],
+                    "color": -4862741
+                }
+            ],
+            "footnote": "n = 10 observaciones incluidas; 1 no incluidas.",
+            "yDecimals": 0
+        },
+        {
+            "title": "Humedad de campo frente a humedad óptima",
+            "xLabel": "Muestra (orden de ensayo)",
+            "yLabel": "Humedad (%)",
+            "series": [
+                {
+                    "name": "Humedad de campo",
+                    "kind": "POINTS",
+                    "points": [
+                        {
+                            "x": 1.0,
+                            "y": 6.0
+                        },
+                        {
+                            "x": 2.0,
+                            "y": 6.2
+                        },
+                        {
+                            "x": 3.0,
+                            "y": 5.800000000000001
+                        },
+                        {
+                            "x": 4.0,
+                            "y": 6.0
+                        },
+                        {
+                            "x": 5.0,
+                            "y": 6.0
+                        },
+                        {
+                            "x": 6.0,
+                            "y": 7.5
+                        },
+                        {
+                            "x": 7.0,
+                            "y": 8.0
+                        },
+                        {
+                            "x": 8.0,
+                            "y": 7.6
+                        },
+                        {
+                            "x": 9.0,
+                            "y": 8.0
+                        },
+                        {
+                            "x": 10.0,
+                            "y": 7.8
+                        }
+                    ],
+                    "color": -16045749
+                },
+                {
+                    "name": "Humedad óptima",
+                    "kind": "POINTS",
+                    "points": [
+                        {
+                            "x": 1.0,
+                            "y": 6.68
+                        },
+                        {
+                            "x": 2.0,
+                            "y": 6.68
+                        },
+                        {
+                            "x": 3.0,
+                            "y": 6.68
+                        },
+                        {
+                            "x": 4.0,
+                            "y": 6.68
+                        },
+                        {
+                            "x": 5.0,
+                            "y": 6.68
+                        },
+                        {
+                            "x": 6.0,
+                            "y": 6.68
+                        },
+                        {
+                            "x": 7.0,
+                            "y": 6.68
+                        },
+                        {
+                            "x": 8.0,
+                            "y": 6.68
+                        },
+                        {
+                            "x": 9.0,
+                            "y": 6.68
+                        },
+                        {
+                            "x": 10.0,
+                            "y": 6.68
+                        }
+                    ],
+                    "color": -7710208
+                }
+            ],
+            "xCategories": {
+                "1": "DEN-0001",
+                "2": "DEN-0002",
+                "3": "DEN-0003",
+                "4": "DEN-0004",
+                "5": "DEN-0005",
+                "6": "DEN-0006",
+                "7": "DEN-0007",
+                "8": "DEN-0008",
+                "9": "DEN-0009",
+                "10": "DEN-0010"
+            },
+            "footnote": "n = 10."
+        }
+    ],
+    "lots": [
+        {
+            "title": "Lote L-01",
+            "pairs": [
+                {
+                    "first": "Registradas / incluidas / excluidas",
+                    "second": "5 / 5 / 0"
+                },
+                {
+                    "first": "Dm",
+                    "second": "2.320,85 kg/m³"
+                },
+                {
+                    "first": "s",
+                    "second": "20,47 kg/m³"
+                },
+                {
+                    "first": "k(n)",
+                    "second": "0,685"
+                },
+                {
+                    "first": "Dm − k·s",
+                    "second": "2.306,82 kg/m³"
+                },
+                {
+                    "first": "α·De",
+                    "second": "2.370,25 kg/m³"
+                },
+                {
+                    "first": "Di individuales ≥ α·De",
+                    "second": "0 de 5 (indicador descriptivo, no es aceptación)"
+                }
+            ],
+            "statusText": "Evaluación provisional: no cumple (criterio no validado)",
+            "favorable": null,
+            "notes": []
+        },
+        {
+            "title": "Lote L-02",
+            "pairs": [
+                {
+                    "first": "Registradas / incluidas / excluidas",
+                    "second": "5 / 5 / 0"
+                },
+                {
+                    "first": "Dm",
+                    "second": "2.165,55 kg/m³"
+                },
+                {
+                    "first": "s",
+                    "second": "24,76 kg/m³"
+                },
+                {
+                    "first": "k(n)",
+                    "second": "0,685"
+                },
+                {
+                    "first": "Dm − k·s",
+                    "second": "2.148,60 kg/m³"
+                },
+                {
+                    "first": "α·De",
+                    "second": "2.370,25 kg/m³"
+                },
+                {
+                    "first": "Di individuales ≥ α·De",
+                    "second": "0 de 5 (indicador descriptivo, no es aceptación)"
+                }
+            ],
+            "statusText": "Evaluación provisional: no cumple (criterio no validado)",
+            "favorable": null,
+            "notes": []
+        }
+    ],
+    "notIncludedRows": [
+        [
+            "DEN-0011",
+            "Borrador",
+            "Estado documental «Borrador»: no se incluye en cálculos"
+        ]
+    ],
+    "warnings": [
+        "Datos demostrativos.",
+        "El criterio Dm − k·s ≥ 0,95·De es heredado del formato y no está validado."
+    ],
+    "observations": null,
+    "calibrationRows": [
+        [
+            "CAL-CONO-01",
+            "Cono 01",
+            "01/11/2026",
+            "1.735,0",
+            "1,396"
+        ],
+        [
+            "CAL-CONO-02",
+            "Cono 02",
+            "15/11/2026",
+            "1.774,0",
+            "1,408"
+        ]
+    ],
+    "labRefRows": [
+        [
+            "PROCTOR-DEMO-01",
+            "Granular demo",
+            "Proctor modificado demo",
+            "2.495,0",
+            "6,68"
+        ]
+    ],
+    "photos": [
+        {
+            "path": "/home/user/App_Laboratorio/core/build/ejemplos-pdf/foto_h.jpg",
+            "pxW": 1600,
+            "pxH": 1200,
+            "caption": [
+                "Fotografía 01 · 24/11/2026 09:42:18 UTC−05:00",
+                "Muestra DEN-0001 · PR 003+150 · Costado derecho · Capa 2",
+                "Descripción: Vista del hueco antes de instalar el cono. Ejemplo ilustrativo, no es un registro real.",
+                "Observación: Material granular, capa 2."
+            ]
+        },
+        {
+            "path": "/home/user/App_Laboratorio/core/build/ejemplos-pdf/foto_v.jpg",
+            "pxW": 900,
+            "pxH": 1600,
+            "caption": [
+                "Fotografía 02 · 24/11/2026 09:10:00 (fecha declarada manualmente)",
+                "Muestra DEN-0002 · PR 003+175 · Costado derecho · Capa 2",
+                "Descripción: Vista del hueco antes de instalar el cono. Ejemplo ilustrativo, no es un registro real.",
+                "Observación: Material granular, capa 2."
+            ]
+        }
+    ]
+}

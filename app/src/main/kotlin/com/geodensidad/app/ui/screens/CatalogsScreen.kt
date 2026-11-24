@@ -77,7 +77,7 @@ fun CatalogsScreen(back: () -> Unit) {
     val cals by vm.calibrations.collectAsStateWithLifecycle(); val labs by vm.labRefs.collectAsStateWithLifecycle()
     val people by vm.people.collectAsStateWithLifecycle(); val crits by vm.criteria.collectAsStateWithLifecycle()
     Scaffold(topBar = { Column { AppBar("Catálogos", "Los cambios no alteran muestras ya registradas", back); ScrollableTabRow(tab, edgePadding = 8.dp) { tabs.forEachIndexed { i, t -> Tab(tab == i, { tab = i }, text = { Text(t) }) } } } },
-        floatingActionButton = { ExtendedFloatingActionButton(onClick = { creating = true }, icon = { Icon(Icons.Default.Add, null) }, text = { Text("Agregar") }) },
+        floatingActionButton = { LabeledFab("Agregar", Icons.Default.Add, { creating = true }) },
         snackbarHost = { SnackbarHost(snack) }) { pad ->
         LazyColumn(Modifier.padding(pad).fillMaxSize(), contentPadding = PaddingValues(bottom = 96.dp)) {
             item { Banner("Los registros no se eliminan: se archivan. Cada muestra guarda una instantánea de la calibración y la referencia usadas.", Condor.Steel) }

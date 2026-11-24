@@ -20,6 +20,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -204,4 +206,11 @@ fun BusyButton(text: String, busy: Boolean, onClick: () -> Unit, modifier: Modif
         else icon?.let { Icon(it, null); Spacer(Modifier.width(6.dp)) }
         Text(text)
     }
+}
+
+/** FAB extendido con etiqueta accesible (Material 3 oculta el texto del FAB a los lectores de pantalla). */
+@Composable
+fun LabeledFab(text: String, icon: ImageVector, onClick: () -> Unit, expanded: Boolean = true) {
+    ExtendedFloatingActionButton(onClick = onClick, icon = { Icon(icon, null) }, text = { Text(text) }, expanded = expanded,
+        modifier = Modifier.semantics { contentDescription = text })
 }

@@ -43,7 +43,7 @@ fun CustomFieldsScreen(back: () -> Unit) {
     val snack = remember { SnackbarHostState() }
     ErrorSnack(vm.message.collectAsStateWithLifecycle().value, { vm.message.value = null }, snack)
     Scaffold(topBar = { AppBar("Campos personalizados", "Información complementaria sin cambiar el código", back) },
-        floatingActionButton = { ExtendedFloatingActionButton(onClick = { create = true }, icon = { Icon(Icons.Default.Add, null) }, text = { Text("Nuevo campo") }) },
+        floatingActionButton = { LabeledFab("Nuevo campo", Icons.Default.Add, { create = true }) },
         snackbarHost = { SnackbarHost(snack) }) { pad ->
         LazyColumn(Modifier.padding(pad).fillMaxSize(), contentPadding = PaddingValues(bottom = 96.dp)) {
             item { Banner("Los campos personalizados no modifican el motor de cálculo. Los valores se guardan por identificador estable: cambiar la etiqueta no afecta a los datos. Los campos usados no se eliminan, se archivan.", Condor.Steel) }

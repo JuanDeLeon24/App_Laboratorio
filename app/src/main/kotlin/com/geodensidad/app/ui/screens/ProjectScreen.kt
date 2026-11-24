@@ -65,7 +65,7 @@ fun ProjectScreen(nav: NavController, back: () -> Unit) {
             IconButton(onClick = { edit = true }) { Icon(Icons.Default.Edit, "Editar proyecto") }
             IconButton(onClick = { confirmArchive = true }) { Icon(if (p?.status == "ARCHIVED") Icons.Default.Unarchive else Icons.Default.Archive, "Archivar") }
         } },
-        floatingActionButton = { ExtendedFloatingActionButton(onClick = { newAct = true }, icon = { Icon(Icons.Default.Add, null) }, text = { Text("Nueva actividad") }) },
+        floatingActionButton = { LabeledFab("Nueva actividad", Icons.Default.Add, { newAct = true }) },
         snackbarHost = { SnackbarHost(snack) },
     ) { pad ->
         LazyColumn(Modifier.padding(pad).fillMaxSize(), contentPadding = PaddingValues(bottom = 96.dp)) {

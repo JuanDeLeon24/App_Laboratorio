@@ -79,8 +79,14 @@ open class CanvasSurface(var canvas: Canvas?, private val scale: Float = 1f) : P
     fun recyclePageBitmaps() { pageBitmaps.forEach { it.recycle() }; pageBitmaps.clear() }
 }
 
+/** Destino de escritura de un PDF completo. */
+interface PdfWriterTarget : PdfSurface {
+    fun writeTo(out: OutputStream)
+    fun close()
+}
+
 /** Escritor PDF nativo de Android (android.graphics.pdf.PdfDocument, parte de la plataforma AOSP). */
-class AndroidPdfWriter : CanvasSurface(null) {
+class AndroidPdfWriter : CanvasSurface(null), PdfWriterTarget {
     private val doc = PdfDocument()
     private var page: PdfDocument.Page? = null
     private var n = 0
@@ -91,6 +97,6 @@ class AndroidPdfWriter : CanvasSurface(null) {
         canvas = page!!.canvas
     }
     override fun endPage() { page?.let { doc.finishPage(it) }; page = null; canvas = null; recyclePageBitmaps() }
-    fun writeTo(out: OutputStream) = doc.writeTo(out)
-    fun close() { recyclePageBitmaps(); doc.close() }
+    override fun writeTo(out: OutputStream) = doc.writeTo(out)
+    override fun close() { recyclePageBitmaps(); doc.close() }
 }

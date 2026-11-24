@@ -64,7 +64,7 @@ fun LotScreen(nav: NavController, back: () -> Unit) {
     Scaffold(topBar = { AppBar("Lote ${lot?.code ?: ""}", lot?.description, back) {
         IconButton(onClick = { edit = true }) { Icon(Icons.Default.Edit, "Editar lote") }
         IconButton(onClick = { nav.navigate(Routes.history(vm.id)) }) { Icon(Icons.Default.History, "Historial del lote") }
-    } }, floatingActionButton = { ExtendedFloatingActionButton(onClick = { adding = true }, icon = { Icon(Icons.Default.PlaylistAdd, null) }, text = { Text("Agregar muestras") }) },
+    } }, floatingActionButton = { LabeledFab("Agregar muestras", Icons.Default.PlaylistAdd, { adding = true }) },
         snackbarHost = { SnackbarHost(snack) }) { pad ->
         LazyColumn(Modifier.padding(pad).fillMaxSize(), contentPadding = PaddingValues(bottom = 96.dp)) {
             e?.let { ev -> item {
