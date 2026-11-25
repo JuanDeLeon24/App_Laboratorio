@@ -115,7 +115,8 @@ fun RegistrosScreen(abrir: (String) -> Unit) {
         floatingActionButton = { LabeledFab("Nuevo registro", Icons.Default.Add, { vm.nuevo(abrir) }) },
         snackbarHost = { SnackbarHost(snack) },
     ) { pad ->
-        LazyColumn(Modifier.padding(pad).fillMaxSize(), contentPadding = PaddingValues(bottom = 96.dp)) {
+        Box(Modifier.padding(pad).fillMaxSize().imePadding(), contentAlignment = androidx.compose.ui.Alignment.TopCenter) {
+        LazyColumn(Modifier.widthIn(max = 760.dp).fillMaxSize(), contentPadding = PaddingValues(bottom = 96.dp)) {
             item {
                 OutlinedTextField(buscar, { buscar = it }, Modifier.fillMaxWidth().padding(12.dp), placeholder = { Text("Buscar por registro, proyecto, lote o fecha") },
                     leadingIcon = { Icon(Icons.Default.Search, null) }, singleLine = true)
@@ -145,6 +146,7 @@ fun RegistrosScreen(abrir: (String) -> Unit) {
                 )
                 HorizontalDivider()
             }
+        }
         }
     }
     confirmarRestaurar?.let { uri ->

@@ -101,17 +101,17 @@ class RegistroTest {
     }
 }
 
-/** Reproduce el PDF del usuario: L = "0,061" (decimal) y Q = "2.395" (punto de miles) deben dar lo mismo que el Excel. */
+/** L en decimal (0,061) y R en porcentaje (6,68 → 0,0668), con coma como único separador decimal. */
 @RunWith(RobolectricTestRunner::class)
 class DigitacionComoExcelTest {
-    @Test fun lDecimalYQConPuntoDeMiles() {
-        val l = (com.geodensidad.app.ui.interpretar("l", "0,061") as com.geodensidad.core.number.ParsedDecimal.Valid).value
-        val q = (com.geodensidad.app.ui.interpretar("q", "2.395") as com.geodensidad.core.number.ParsedDecimal.Valid).value
-        val f = (com.geodensidad.app.ui.interpretar("f", "1.396") as com.geodensidad.core.number.ParsedDecimal.Valid).value
-        assertEquals(0.061, l.toDouble(), 0.0); assertEquals(2395.0, q.toDouble(), 0.0); assertEquals(1.396, f.toDouble(), 0.0)
-        val base = registroDelExcel().copy(q = q.toPlainString())
-        val r = base.conDensidades(listOf(base.densidades[0].copy(l = l.toPlainString(), f = f.toPlainString())))
-        val x = r.calcular(r.densidades[0])
+    @Test fun lDecimalYRPorcentaje() {
+        fun v(p: com.geodensidad.core.number.ParsedDecimal) = (p as com.geodensidad.core.number.ParsedDecimal.Valid).value
+        val l = v(com.geodensidad.core.number.DecimalText.parse("0,061"))
+        val r = v(com.geodensidad.core.number.DecimalText.percentTextToFraction("6,68"))
+        assertEquals(0.061, l.toDouble(), 0.0); assertEquals(0.0668, r.toDouble(), 1e-15)
+        val base = registroDelExcel().copy(q = "2395", r = com.geodensidad.core.number.DecimalText.canonical(r))
+        val reg = base.conDensidades(listOf(base.densidades[0].copy(l = l.toPlainString())))
+        val x = reg.calcular(reg.densidades[0])
         assertEquals(2292.577232302752, x.value("P")!!, 1e-9)
         assertEquals(95.7234752527245, x.value("S")!!, 1e-9)
     }

@@ -1,6 +1,10 @@
 # Changelog
 
 ## 1.2.x — 2026-11-25
+- Teclado numérico propio para A, B, D, F, H, I, J, L, Q, R: solo dígitos y **coma** (sin punto), borrar, limpiar, Anterior, **Siguiente** (en el orden del Excel, y pasa a la siguiente densidad) y Listo.
+- El campo activo se desplaza solo para quedar visible sobre el teclado; los campos de texto también se desplazan al enfocarse o con «Siguiente».
+- Diseño adaptable: ancho máximo centrado en tablets/horizontal; teclado compacto en pantallas bajas; márgenes correctos con barras del sistema y teclado.
+- R (humedad óptima) se digita en porcentaje: 6,68 → 0,0668. L sigue en decimal como en la plantilla.
 - **Importar Excel (.xlsx)**: cada hoja con el formato 'Cono de arena' se convierte en un registro (encabezado, densidades C–L, I, Q, R, observaciones y nombres). Funciona con el Excel original de la plantilla y con los exportados por la app. También se puede abrir/compartir un .xlsx hacia GeoDensidad.
 - **Exportar a Excel**: uno o varios registros (toda la lista o el resultado de la búsqueda, p. ej. una fecha/jornada) en un .xlsx con las mismas celdas y fórmulas de la plantilla (una hoja por registro). Se abre en Excel, LibreOffice o Google Sheets.
 - Al reimportar un archivo exportado por la app, el registro se actualiza (no se duplica): el identificador va en la fila 56 de cada hoja.

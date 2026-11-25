@@ -1,6 +1,12 @@
 package com.geodensidad.app.ui
 
 import android.content.ActivityNotFoundException
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.input.ImeAction
 import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -60,7 +66,7 @@ class RegistroViewModel(private val c: AppContainer, h: SavedStateHandle) : View
         viewModelScope.launch {
             val r = c.db.registros().obtener(id) ?: return@launch
             registro.value = r
-            val t = mutableMapOf("i" to DecimalText.storedToEditText(r.i), "q" to DecimalText.storedToEditText(r.q), "r" to DecimalText.storedToEditText(r.r))
+            val t = mutableMapOf("i" to DecimalText.storedToEditText(r.i), "q" to DecimalText.storedToEditText(r.q), "r" to DecimalText.fractionToPercentText(r.r))
             r.densidades.forEachIndexed { n, d -> t.putAll(textosDe(n, d)) }
             textos.value = t
         }
@@ -89,8 +95,16 @@ class RegistroViewModel(private val c: AppContainer, h: SavedStateHandle) : View
     fun editarDensidad(n: Int, t: (Densidad) -> Densidad) = editar { r -> r.conDensidades(r.densidades.mapIndexed { i, d -> if (i == n) t(d) else d }) }
 
     /** Número digitado: vacío o inválido = dato faltante (nunca cero). L y R en decimal, como en el Excel. */
-    private fun canon(raw: String, campo: String): String? =
-        (interpretar(campo, raw) as? ParsedDecimal.Valid)?.let { DecimalText.canonical(it.value) }
+    private fun canon(raw: String, campo: String): String? {
+        val p = if (campo == "r") DecimalText.percentTextToFraction(raw) else DecimalText.parse(raw)
+        return (p as? ParsedDecimal.Valid)?.let { DecimalText.canonical(it.value) }
+    }
+
+    /** Orden de digitación igual a las filas del Excel. I, Q y R son comunes a todas las densidades. */
+    val orden = listOf("a", "b", "d", "f", "h", "i", "j", "l", "q", "r")
+    private val comunes = setOf("i", "q", "r")
+    fun texto(n: Int, campo: String) = textos.value[if (campo in comunes) campo else "$n.$campo"] ?: ""
+    fun escribir(n: Int, campo: String, raw: String) = if (campo in comunes) numeroComun(campo, raw) else numeroDensidad(n, campo, raw)
 
     fun numeroComun(campo: String, raw: String) {
         textos.value = textos.value + (campo to raw)
@@ -167,6 +181,12 @@ fun RegistroScreen(volver: () -> Unit) {
     val snack = remember { SnackbarHostState() }
     ErrorSnack(vm.mensaje.collectAsStateWithLifecycle().value, { vm.mensaje.value = null }, snack)
     var borrar by remember { mutableStateOf<Int?>(null) }
+    /** Campo numérico activo: "<densidad>.<campo>" (p. ej. "0.a"); null = teclado propio oculto. */
+    var activo by rememberSaveable { mutableStateOf<String?>(null) }
+    val teclado = LocalSoftwareKeyboardController.current
+    val foco = LocalFocusManager.current
+    LaunchedEffect(activo) { if (activo != null) { foco.clearFocus(); teclado?.hide() } }
+    BackHandler(enabled = activo != null) { activo = null }
     val abrirPdf: (File) -> Unit = { f ->
         val uri = FileProvider.getUriForFile(ctx, ctx.packageName + ".files", f)
         val ver = Intent(Intent.ACTION_VIEW).setDataAndType(uri, "application/pdf").addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
@@ -188,11 +208,42 @@ fun RegistroScreen(volver: () -> Unit) {
             }
         },
         snackbarHost = { SnackbarHost(snack) },
+        bottomBar = {
+            val a = activo
+            val r0 = reg
+            if (a != null && r0 != null) {
+                val n0 = a.substringBefore('.').toInt(); val campo = a.substringAfter('.')
+                val i = vm.orden.indexOf(campo)
+                val total = r0.densidades.size
+                fun ir(nn: Int, cc: String) { vm.seleccion.value = nn; activo = "$nn.$cc" }
+                val t = vm.texto(n0, campo)
+                TecladoNumerico(
+                    titulo = "Densidad ${n0 + 1} · ${campo.uppercase()} · ${NOMBRES[campo]}",
+                    onTecla = { ch ->
+                        val nuevo = when {
+                            ch == ',' && t.contains(',') -> t
+                            ch == ',' && t.isEmpty() -> "0,"
+                            t.length >= 12 -> t
+                            else -> t + ch
+                        }
+                        vm.escribir(n0, campo, nuevo)
+                    },
+                    onBorrar = { vm.escribir(n0, campo, t.dropLast(1)) }, onLimpiar = { vm.escribir(n0, campo, "") },
+                    onAnterior = { if (i > 0) ir(n0, vm.orden[i - 1]) else if (n0 > 0) ir(n0 - 1, vm.orden.last()) },
+                    onSiguiente = { if (i < vm.orden.lastIndex) ir(n0, vm.orden[i + 1]) else if (n0 + 1 < total) ir(n0 + 1, vm.orden.first()) },
+                    onListo = { activo = null },
+                    hayAnterior = i > 0 || n0 > 0, haySiguiente = i < vm.orden.lastIndex || n0 + 1 < total,
+                )
+            }
+        },
     ) { pad ->
         val r = reg ?: return@Scaffold
         val dens = r.densidades
         val n = sel.coerceIn(0, (dens.size - 1).coerceAtLeast(0))
-        LazyColumn(Modifier.padding(pad).fillMaxSize(), contentPadding = PaddingValues(bottom = 40.dp)) {
+        val alEnfocarTexto = { activo = null }
+        CompositionLocalProvider(LocalAlEnfocarTexto provides alEnfocarTexto) {
+        Box(Modifier.padding(pad).fillMaxSize().imePadding(), contentAlignment = Alignment.TopCenter) {
+        LazyColumn(Modifier.widthIn(max = 760.dp).fillMaxSize(), contentPadding = PaddingValues(bottom = 40.dp)) {
             item {
                 Bloque("Encabezado") {
                     Campo("Proyecto", r.proyecto) { v -> vm.editar { it.copy(proyecto = v) } }
@@ -207,18 +258,20 @@ fun RegistroScreen(volver: () -> Unit) {
             item {
                 Text("Densidades", style = MaterialTheme.typography.titleMedium, color = Condor.NavyDeep, modifier = Modifier.padding(16.dp, 12.dp, 16.dp, 4.dp))
                 LazyRow(contentPadding = PaddingValues(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    itemsIndexed(dens) { i, _ -> FilterChip(i == n, { vm.seleccion.value = i }, { Text("${i + 1}") }) }
+                    itemsIndexed(dens) { i, _ -> FilterChip(i == n, { vm.seleccion.value = i; activo = null }, { Text("${i + 1}") }) }
                     item { AssistChip({ vm.agregarDensidad() }, { Text("Agregar") }, leadingIcon = { Icon(Icons.Default.Add, null) }, enabled = dens.size < Registro.MAX_DENSIDADES) }
                 }
             }
-            if (dens.isNotEmpty()) item { DensidadCard(vm, r, n, textos) { borrar = n } }
+            if (dens.isNotEmpty()) item { DensidadCard(vm, r, n, textos, activo, { activo = it }) { borrar = n } }
             item { Resumen(r) { vm.seleccion.value = it } }
             item {
                 Bloque("Observaciones y firmas") {
-                    OutlinedTextField(r.observaciones, { v -> vm.editar { it.copy(observaciones = v) } }, label = { Text("Observaciones") }, minLines = 3, modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(r.observaciones, { v -> vm.editar { it.copy(observaciones = v) } }, label = { Text("Observaciones") }, minLines = 3, modifier = Modifier.fillMaxWidth().visibleAlEnfocar { activo = null })
                     Par({ Campo("Elaboró", r.elaboro) { v -> vm.editar { it.copy(elaboro = v) } } }, { Campo("Aprobó", r.aprobo) { v -> vm.editar { it.copy(aprobo = v) } } })
                 }
             }
+        }
+        }
         }
     }
     borrar?.let { i -> ConfirmDialog("Eliminar densidad ${i + 1}", "Se borrarán sus datos.", "Eliminar", true, onConfirm = { vm.eliminarDensidad(i) }, onDismiss = { borrar = null }) }
@@ -234,25 +287,22 @@ private fun Bloque(titulo: String, content: @Composable ColumnScope.() -> Unit) 
     }
 }
 
+/** Al enfocar un campo de texto se oculta el teclado numérico propio. */
+private val LocalAlEnfocarTexto = staticCompositionLocalOf<() -> Unit> { {} }
+
 @Composable
 private fun Campo(label: String, value: String, modifier: Modifier = Modifier, onChange: (String) -> Unit) =
-    OutlinedTextField(value, onChange, label = { Text(label) }, singleLine = true, modifier = modifier.fillMaxWidth())
+    OutlinedTextField(value, onChange, label = { Text(label) }, singleLine = true,
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+        modifier = modifier.fillMaxWidth().visibleAlEnfocar(LocalAlEnfocarTexto.current))
 
 @Composable
 private fun Par(a: @Composable () -> Unit, b: @Composable () -> Unit) =
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { Box(Modifier.weight(1f)) { a() }; Box(Modifier.weight(1f)) { b() } }
 
-@Composable
-private fun Numero(sym: String, nombre: String, unidad: String, texto: String, error: String? = null, ayuda: String? = null, onChange: (String) -> Unit) {
-    val campo = sym.lowercase()
-    NumberInput(nombre, texto, unidad, onChange, symbol = sym, error = error, hint = ayuda,
-        parser = { interpretar(campo, it) },
-        eco = { v -> "Valor: " + Fmt.num(v.toDouble(), maxOf(0, minOf(4, v.stripTrailingZeros().scale()))) + (if (campo == "l" || campo == "r") " (= ${Fmt.num(v.toDouble() * 100, 2)} %)" else "") })
-}
-
-/** Campos de valores grandes: el punto entre grupos de 3 cifras es separador de miles. */
-private val camposGrandes = setOf("a", "b", "d", "h", "j", "q")
-fun interpretar(campo: String, raw: String): ParsedDecimal = DecimalText.parseCampo(raw, campo in camposGrandes)
+val NOMBRES = mapOf("a" to "Peso frasco y arena inicial", "b" to "Peso frasco y arena restante", "d" to "Constante del cono", "f" to "Densidad de la arena",
+    "h" to "Material retenido en 3/4", "i" to "Gravedad específica bulk", "j" to "Peso material extraído húmedo", "l" to "Humedad (decimal)",
+    "q" to "Densidad máxima de laboratorio (De)", "r" to "Humedad óptima (%)")
 
 /** Explica en palabras simples por qué no se puede calcular S = P / Q × 100. */
 private fun motivoS(r: LegacyResult): String {
@@ -276,9 +326,13 @@ private fun error(r: LegacyResult, sym: String) = r.issues.filter { it.field == 
 private fun v(r: LegacyResult, s: String, dec: Int, unidad: String) = r.value(s)?.let { "${Fmt.num(it, dec)} $unidad" } ?: "—"
 
 @Composable
-private fun DensidadCard(vm: RegistroViewModel, reg: Registro, n: Int, textos: Map<String, String>, onBorrar: () -> Unit) {
+private fun DensidadCard(vm: RegistroViewModel, reg: Registro, n: Int, textos: Map<String, String>, activo: String?, activar: (String?) -> Unit, onBorrar: () -> Unit) {
     val d = reg.densidades[n]
     val r = reg.calcular(d)
+    @Composable fun num(campo: String, unidad: String, ayuda: String? = null) {
+        val sym = campo.uppercase()
+        CampoNumero(sym, NOMBRES[campo]!!, unidad, vm.texto(n, campo), activo == "$n.$campo", { activar("$n.$campo") }, error(r, sym), ayuda)
+    }
     Card(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -287,24 +341,24 @@ private fun DensidadCard(vm: RegistroViewModel, reg: Registro, n: Int, textos: M
             }
             Par({ Campo("Capa No.", d.capa) { v -> vm.editarDensidad(n) { it.copy(capa = v) } } }, { Campo("Espesor capa", d.espesor) { v -> vm.editarDensidad(n) { it.copy(espesor = v) } } })
             Par({ Campo("PR", d.pr) { v -> vm.editarDensidad(n) { it.copy(pr = v) } } }, { Campo("Costado", d.costado) { v -> vm.editarDensidad(n) { it.copy(costado = v) } } })
-            Numero("A", "Peso frasco y arena inicial", "g", textos["$n.a"] ?: "", error(r, "A")) { vm.numeroDensidad(n, "a", it) }
-            Numero("B", "Peso frasco y arena restante", "g", textos["$n.b"] ?: "", error(r, "B")) { vm.numeroDensidad(n, "b", it) }
+            num("a", "g")
+            num("b", "g")
             Calculada("C", "Peso arena total usada", v(r, "C", 0, "g"))
-            Numero("D", "Constante del cono", "g", textos["$n.d"] ?: "", error(r, "D")) { vm.numeroDensidad(n, "d", it) }
+            num("d", "g")
             Calculada("E", "Peso arena en el hueco", v(r, "E", 0, "g"))
-            Numero("F", "Densidad de la arena", "g/cm³", textos["$n.f"] ?: "", error(r, "F")) { vm.numeroDensidad(n, "f", it) }
+            num("f", "g/cm³")
             Calculada("G", "Volumen del hueco", v(r, "G", 2, "cm³"))
-            Numero("H", "Material retenido en 3/4", "g", textos["$n.h"] ?: "", error(r, "H")) { vm.numeroDensidad(n, "h", it) }
-            Numero("I", "Gravedad específica bulk", "g/cm³", textos["i"] ?: "", error(r, "I"), "Mismo valor para todas las densidades") { vm.numeroComun("i", it) }
-            Numero("J", "Peso material extraído húmedo", "g", textos["$n.j"] ?: "", error(r, "J")) { vm.numeroDensidad(n, "j", it) }
+            num("h", "g")
+            num("i", "g/cm³", "Mismo valor para todas las densidades")
+            num("j", "g")
             Calculada("K", "% retenido 3/4", v(r, "K", 2, "%"))
-            Numero("L", "Humedad (decimal)", "", textos["$n.l"] ?: "", error(r, "L"), "Como en el Excel: 0,061") { vm.numeroDensidad(n, "l", it) }
+            num("l", "", "Decimal, como en el Excel: 0,061")
             Calculada("M", "Densidad húmeda de campo", v(r, "M", 2, "kg/m³"))
             Calculada("N", "Humedad partículas finas (decimal)", r.value("N")?.let { Fmt.num(it, 4) } ?: "—")
             Calculada("O", "Densidad seca muestra total", v(r, "O", 2, "kg/m³"))
             Calculada("P", "Densidad seca corregida (Di)", v(r, "P", 2, "kg/m³"), destacada = true)
-            Numero("Q", "Densidad máxima de laboratorio (De)", "kg/m³", textos["q"] ?: "", error(r, "Q"), "Mismo valor para todas las densidades") { vm.numeroComun("q", it) }
-            Numero("R", "Humedad óptima (decimal)", "", textos["r"] ?: "", error(r, "R"), "Como en el Excel: 0,0668 · mismo valor para todas") { vm.numeroComun("r", it) }
+            num("q", "kg/m³", "Mismo valor para todas las densidades")
+            num("r", "%", "En porcentaje: 6,68 · mismo valor para todas")
             Calculada("S", "Compactación del terreno", v(r, "S", 2, "%"), destacada = true)
             if (r.value("S") == null) Text(motivoS(r), color = Condor.Bad, style = MaterialTheme.typography.bodySmall)
         }

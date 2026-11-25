@@ -36,6 +36,13 @@ class UiFlowTest {
     } catch (e: Throwable) { throw AssertionError("No apareció «$t»:\n" + rule.onRoot().printToString(40), e) }
 
     private fun lista() = rule.onAllNodes(hasScrollToNodeAction())[0]
+    /** Digita con el teclado propio de la app: toca el campo y pulsa las teclas. */
+    private fun teclear(sym: String, v: String) {
+        lista().performScrollToNode(hasTestTag("campo_$sym"))
+        rule.onNodeWithTag("campo_$sym").performClick()
+        v.forEach { ch -> rule.onNodeWithTag(if (ch == ',') "tecla_coma" else "tecla_$ch").performClick() }
+    }
+
     private fun escribir(label: String, v: String) {
         val m = hasText(label, substring = true) and hasSetTextAction()
         lista().performScrollToNode(m); rule.onNode(m).performTextReplacement(v)
@@ -48,12 +55,25 @@ class UiFlowTest {
         esperar("Encabezado")
         escribir("Proyecto", "Vías de acceso"); escribir("Registro", "7")
         shot("02_encabezado")
-        escribir("A · Peso frasco y arena inicial", "7139"); escribir("B · Peso frasco y arena restante", "3317")
-        escribir("D · Constante del cono", "1735"); escribir("F · Densidad de la arena", "1,396")
-        escribir("H · Material retenido", "410"); escribir("I · Gravedad específica bulk", "2,667")
-        escribir("J · Peso material extraído", "3694"); escribir("L · Humedad", "0,06")
+        // A y luego "Siguiente" recorre B, D, F, H, I, J, L, Q, R en el orden del Excel
+        teclear("A", "7139")
+        for ((sym, v) in listOf("B" to "3317", "D" to "1735", "F" to "1,396", "H" to "410")) {
+            rule.onNodeWithTag("tecla_siguiente").performClick()
+            esperar("Densidad 1 · $sym")
+            v.forEach { ch -> rule.onNodeWithTag(if (ch == ',') "tecla_coma" else "tecla_$ch").performClick() }
+        }
+        rule.onNodeWithTag("tecla_siguiente").performClick(); esperar("Densidad 1 · I") // I ya trae 2,667
+        rule.onNodeWithTag("tecla_siguiente").performClick(); esperar("Densidad 1 · J")
+        "3694".forEach { rule.onNodeWithTag("tecla_$it").performClick() }
+        rule.onNodeWithTag("tecla_siguiente").performClick(); esperar("Densidad 1 · L")
+        rule.onNodeWithTag("tecla_0").performClick(); rule.onNodeWithTag("tecla_coma").performClick(); rule.onNodeWithTag("tecla_0").performClick(); rule.onNodeWithTag("tecla_6").performClick()
+        shot("03a_teclado_propio")
         lista().performScrollToNode(hasText("No se calcula la compactación", substring = true)) // sin Q todavía no hay S
-        escribir("Q · Densidad máxima", "2.495"); escribir("R · Humedad óptima", "0,0668")
+        rule.onNodeWithTag("tecla_siguiente").performClick(); esperar("Densidad 1 · Q")
+        "2495".forEach { rule.onNodeWithTag("tecla_$it").performClick() }
+        rule.onNodeWithTag("tecla_siguiente").performClick(); esperar("Densidad 1 · R")
+        "6,68".forEach { ch -> rule.onNodeWithTag(if (ch == ',') "tecla_coma" else "tecla_$ch").performClick() }
+        rule.onNodeWithTag("tecla_listo").performClick()
         lista().performScrollToNode(hasText("Compactación del terreno", substring = true))
         esperar("91,98 %")
         rule.onNodeWithText("2.294,97 kg/m³").assertExists()

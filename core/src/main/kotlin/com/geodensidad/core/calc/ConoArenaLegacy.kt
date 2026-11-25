@@ -129,7 +129,8 @@ object ConoArenaLegacy {
         if (fSand != null && fSand > 0 && (fSand < 1.2 || fSand > 1.8)) issues += CalcIssue.warning("F", "Densidad de arena fuera del rango habitual 1,2–1,8 g/cm³")
         if (iBulk != null && iBulk > 0 && (iBulk < 2.0 || iBulk > 3.2)) issues += CalcIssue.warning("I", "Parámetro bulk fuera del rango habitual 2,0–3,2")
         if (l != null && l > 0.40) issues += CalcIssue.warning("L", "Humedad mayor que 0,40: se digita en decimal, como en el Excel (0,061 = 6,1 %)")
-        if (r != null && r > 0.40) issues += CalcIssue.warning("R", "Humedad óptima mayor que 0,40: se digita en decimal, como en el Excel (0,0668)")
+        if (r != null && r > 0.40) issues += CalcIssue.warning("R", "Humedad óptima mayor que 40 %: revise el valor")
+        if (r != null && r > 0 && r < 0.005) issues += CalcIssue.warning("R", "Humedad óptima menor que 0,5 %: se digita en porcentaje (6,68)")
         if (q != null && q > 0 && (q < 1000 || q > 3000)) issues += CalcIssue.warning("Q", "Densidad máxima fuera del rango habitual 1.000–3.000 kg/m³: revise el valor")
         steps["K"]?.value?.let { if (it > 50) issues += CalcIssue.warning("K", "Retenido en ¾″ superior al 50 %: la corrección puede no ser aplicable") }
         steps["S"]?.value?.let { if (it < 70 || it > 110) issues += CalcIssue.warning("S", "Compactación fuera del rango plausible 70–110 %") }
