@@ -31,6 +31,9 @@ jobs:
           path: app/build/outputs/apk/**/*.apk
       - name: Pruebas (core JVM + app Robolectric)
         run: ./gradlew :core:test :app:testDebugUnitTest
+      - name: Diagnóstico de jars de Robolectric
+        if: failure()
+        run: ls -la app/build/robolectric-jars || true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
