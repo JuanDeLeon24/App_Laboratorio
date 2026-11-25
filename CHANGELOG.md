@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.x — 2026-11-25
+- I, Q y R se digitan dentro de cada densidad, en su fila del Excel (H → I → J … P → Q → R → S); valen igual para todas las densidades.
+- Cuando S no se puede calcular, la app dice por qué (p. ej. falta Q).
+- Versión automática por compilación y firma fija desde los Secrets de GitHub: las actualizaciones se instalan encima sin desinstalar.
+- Verificado contra 'Densidades_toyo (1).xlsx' (L₁ = 0,061; Q = 2395): P y S idénticos a los valores guardados por Excel.
+
 ## 1.1.0 (versionCode 2) — 2026-11-25 — App simplificada
 - La app reproduce directamente la hoja 'Cono de arena': un registro = una hoja (encabezado, hasta 10 densidades, resumen, observaciones y firmas).
 - Solo se digitan las celdas de datos del Excel; C, E, G, K, M, N, O, P y S se calculan.

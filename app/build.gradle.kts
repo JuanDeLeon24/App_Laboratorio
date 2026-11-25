@@ -23,12 +23,25 @@ android {
         applicationId = "com.geodensidad.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 2
-        versionName = "1.1.0"
+        // Versión creciente en cada compilación de GitHub (número de ejecución): permite instalar encima.
+        val build = (System.getenv("GITHUB_RUN_NUMBER") ?: "0").toInt()
+        versionCode = 100 + build
+        versionName = "1.2.$build"
         resValue("string", "app_name", "GeoDensidad")
     }
 
     signingConfigs {
+        // Firma FIJA tomada de los Secrets de GitHub (ver docs/INSTALACION_Y_ACTUALIZACION.md).
+        // Con la misma firma y versión mayor, cada APK nuevo se instala encima conservando los datos.
+        val ks = System.getenv("SIGNING_KEYSTORE_FILE")
+        if (!ks.isNullOrBlank() && file(ks).exists()) {
+            create("fija") {
+                storeFile = file(ks)
+                storePassword = System.getenv("SIGNING_STORE_PASSWORD")
+                keyAlias = System.getenv("SIGNING_KEY_ALIAS")
+                keyPassword = System.getenv("SIGNING_KEY_PASSWORD")
+            }
+        }
         if (keystoreProps.getProperty("storeFile") != null) {
             create("release") {
                 storeFile = rootProject.file(keystoreProps.getProperty("storeFile"))
@@ -42,11 +55,10 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
-            signingConfig = signingConfigs.findByName("release")
+            signingConfig = signingConfigs.findByName("release") ?: signingConfigs.findByName("fija")
         }
         debug {
-            applicationIdSuffix = ".debug"
-            versionNameSuffix = "-debug"
+            signingConfigs.findByName("fija")?.let { signingConfig = it }
         }
     }
 

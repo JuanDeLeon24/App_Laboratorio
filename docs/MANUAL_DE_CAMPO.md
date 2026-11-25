@@ -2,9 +2,8 @@
 
 1. **Nuevo registro** (botón inferior). Un registro es una hoja del formato.
 2. **Encabezado**: Proyecto, Localización, Procedencia, PR inicial, PR final, Lado, Fecha, Parte del relleno, Lote, Registro.
-3. **Datos comunes**: I (gravedad específica bulk, ya trae 2,667), Q (densidad máxima de laboratorio) y R (humedad óptima en %).
 4. **Densidades**: los botones 1, 2, 3… eligen la densidad; *Agregar* crea la siguiente (máximo 10; copia D y F de la anterior).
-   Digite Capa, Espesor, PR, Costado y los valores A, B, D, F, H, J, L. Las filas grises (C, E, G, K, M, N, O) y las azules (P y S) se calculan solas.
+   Digite Capa, Espesor, PR, Costado y A, B, D, F, H, I, J, L, Q, R en el mismo orden del Excel. I, Q y R valen igual para todas las densidades (al cambiarlos en una, cambian en todas). Las filas grises (C, E, G, K, M, N, O) y las azules (P y S) se calculan solas. Si S no aparece, la app indica qué falta (normalmente Q).
    - Coma decimal. Humedad en porcentaje: digite `6` para 6 %.
    - Un campo vacío es un dato faltante, no un cero.
 5. **Resumen del registro**: tabla de todas las densidades, compactación promedio y criterio Dm − k·s ≥ 0,95·De. Toque una fila para ir a esa densidad.

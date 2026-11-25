@@ -193,13 +193,6 @@ fun RegistroScreen(volver: () -> Unit) {
                 }
             }
             item {
-                Bloque("Datos comunes a todas las densidades") {
-                    Numero("I", "Gravedad específica bulk", "g/cm³", textos["i"] ?: "") { vm.numeroComun("i", it) }
-                    Numero("Q", "Densidad máxima de laboratorio", "kg/m³", textos["q"] ?: "") { vm.numeroComun("q", it) }
-                    Numero("R", "Humedad óptima", "%", textos["r"] ?: "") { vm.numeroComun("r", it) }
-                }
-            }
-            item {
                 Text("Densidades", style = MaterialTheme.typography.titleMedium, color = Condor.NavyDeep, modifier = Modifier.padding(16.dp, 12.dp, 16.dp, 4.dp))
                 LazyRow(contentPadding = PaddingValues(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     itemsIndexed(dens) { i, _ -> FilterChip(i == n, { vm.seleccion.value = i }, { Text("${i + 1}") }) }
@@ -238,8 +231,15 @@ private fun Par(a: @Composable () -> Unit, b: @Composable () -> Unit) =
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { Box(Modifier.weight(1f)) { a() }; Box(Modifier.weight(1f)) { b() } }
 
 @Composable
-private fun Numero(sym: String, nombre: String, unidad: String, texto: String, error: String? = null, onChange: (String) -> Unit) =
-    NumberInput(nombre, texto, unidad, onChange, symbol = sym, error = error)
+private fun Numero(sym: String, nombre: String, unidad: String, texto: String, error: String? = null, ayuda: String? = null, onChange: (String) -> Unit) =
+    NumberInput(nombre, texto, unidad, onChange, symbol = sym, error = error, hint = ayuda)
+
+/** Explica en palabras simples por qué no se puede calcular S = P / Q × 100. */
+private fun motivoS(r: LegacyResult): String {
+    val falta = r.steps.firstOrNull { it.symbol == "S" }?.unavailableReason ?: return ""
+    val errores = r.blocking.map { "${it.field}: ${it.message}" }
+    return "No se calcula la compactación. " + (if (errores.isNotEmpty()) errores.joinToString("; ") else falta.replace("Depende de resultado no disponible", "Falta calcular"))
+}
 
 /** Fila calculada (fórmula del Excel): solo lectura, sombreada. */
 @Composable
@@ -275,6 +275,7 @@ private fun DensidadCard(vm: RegistroViewModel, reg: Registro, n: Int, textos: M
             Numero("F", "Densidad de la arena", "g/cm³", textos["$n.f"] ?: "", error(r, "F")) { vm.numeroDensidad(n, "f", it) }
             Calculada("G", "Volumen del hueco", v(r, "G", 2, "cm³"))
             Numero("H", "Material retenido en 3/4", "g", textos["$n.h"] ?: "", error(r, "H")) { vm.numeroDensidad(n, "h", it) }
+            Numero("I", "Gravedad específica bulk", "g/cm³", textos["i"] ?: "", error(r, "I"), "Mismo valor para todas las densidades") { vm.numeroComun("i", it) }
             Numero("J", "Peso material extraído húmedo", "g", textos["$n.j"] ?: "", error(r, "J")) { vm.numeroDensidad(n, "j", it) }
             Calculada("K", "% retenido 3/4", v(r, "K", 2, "%"))
             Numero("L", "Humedad", "%", textos["$n.l"] ?: "", error(r, "L")) { vm.numeroDensidad(n, "l", it) }
@@ -282,8 +283,10 @@ private fun DensidadCard(vm: RegistroViewModel, reg: Registro, n: Int, textos: M
             Calculada("N", "Humedad partículas finas", r.value("N")?.let { "${Fmt.num(it * 100, 2)} %" } ?: "—")
             Calculada("O", "Densidad seca muestra total", v(r, "O", 2, "kg/m³"))
             Calculada("P", "Densidad seca corregida (Di)", v(r, "P", 2, "kg/m³"), destacada = true)
-            Calculada("S", "Compactación", v(r, "S", 2, "%"), destacada = true)
-            r.blocking.filter { it.field in setOf("E", "P") }.forEach { Text(it.message, color = Condor.Bad, style = MaterialTheme.typography.bodySmall) }
+            Numero("Q", "Densidad máxima de laboratorio (De)", "kg/m³", textos["q"] ?: "", error(r, "Q"), "Mismo valor para todas las densidades") { vm.numeroComun("q", it) }
+            Numero("R", "Humedad óptima", "%", textos["r"] ?: "", error(r, "R"), "Mismo valor para todas las densidades") { vm.numeroComun("r", it) }
+            Calculada("S", "Compactación del terreno", v(r, "S", 2, "%"), destacada = true)
+            if (r.value("S") == null) Text(motivoS(r), color = Condor.Bad, style = MaterialTheme.typography.bodySmall)
         }
     }
 }

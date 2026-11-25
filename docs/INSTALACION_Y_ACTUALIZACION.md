@@ -1,34 +1,49 @@
-# Instalación, firma y actualización
+# Instalación y actualizaciones sin desinstalar
 
-## Instalación de prueba (debug)
+Android instala una versión **encima** de otra (conservando los registros) solo si:
+1. el APK nuevo está firmado con **la misma clave**, y
+2. tiene un **número de versión mayor**.
 
-1. Compilar `./gradlew :app:assembleDebug` (o descargar el artefacto de la integración continua).
-2. Copiar `app-debug.apk` al teléfono (Android 8.0 o superior) y abrirlo; permitir "instalar apps desconocidas" para el gestor de archivos.
-3. El paquete debug (`com.geodensidad.app.debug`) convive con el de producción y **no comparte datos** con él.
+El número de versión ya sube solo: GitHub usa el número de ejecución (`versionCode = 100 + ejecución`, `versionName = 1.2.<ejecución>`).
+La clave fija se configura **una sola vez** en los Secrets del repositorio:
 
-> Los APK debug se firman con la clave de depuración de cada máquina: un APK debug compilado en otra máquina no podrá instalarse como actualización encima. Use el canal de producción para equipos de campo.
+## 1. Crear la clave (una vez, en su computador)
 
-## Producción (release)
+Necesita `keytool` (viene con Android Studio o cualquier JDK). Elija una contraseña y guárdela.
 
-1. Crear la clave **una sola vez** y custodiarla (gestor de secretos y copia fuera de línea; perderla impide publicar actualizaciones):
-   ```bash
-   keytool -genkeypair -v -keystore geodensidad-release.jks -alias geodensidad -keyalg RSA -keysize 4096 -validity 10000
-   ```
-2. Crear `keystore.properties` en la raíz (está en `.gitignore`, **nunca** se versiona):
-   ```
-   storeFile=../ruta/geodensidad-release.jks
-   storePassword=...
-   keyAlias=geodensidad
-   keyPassword=...
-   ```
-3. `./gradlew :app:assembleRelease` → `app/build/outputs/apk/release/app-release.apk`. Sin `keystore.properties` se genera `app-release-unsigned.apk`, que no es instalable.
+```bash
+keytool -genkeypair -v -keystore geodensidad.jks -storetype PKCS12 -alias geodensidad -keyalg RSA -keysize 4096 -validity 10000
+```
 
-Canal inicial de distribución propuesto: distribución interna del APK firmado (MDM o enlace controlado). No hay autoactualización.
+Convertirla a texto base64 — Windows (PowerShell):
 
-## Actualizar sin perder datos
+```powershell
+[Convert]::ToBase64String([IO.File]::ReadAllBytes("geodensidad.jks")) | Set-Clipboard
+```
 
-- Mismo `applicationId` (`com.geodensidad.app`), misma clave de firma y `versionCode` mayor.
-- Instalar el nuevo APK **encima** (sin desinstalar). - Recomendado: crear un respaldo completo antes de actualizar.
-- **Pendiente de verificar en dispositivo**: la actualización sobre una instalación existente no se ha probado físicamente (ver LIMITACIONES).
+Linux/Mac:
 
-Desinstalar o "borrar datos" elimina toda la información local; solo se recupera con un respaldo.
+```bash
+base64 -w0 geodensidad.jks
+```
+
+**Guarde `geodensidad.jks` y la contraseña en un lugar seguro.** Si se pierden, las versiones nuevas no podrán instalarse encima.
+
+## 2. Cargarla en GitHub (una vez)
+
+Repositorio → *Settings* → *Secrets and variables* → *Actions* → *New repository secret*. Cree cuatro:
+
+| Nombre | Valor |
+|---|---|
+| `SIGNING_KEYSTORE_BASE64` | el texto base64 del paso anterior |
+| `SIGNING_STORE_PASSWORD` | la contraseña |
+| `SIGNING_KEY_ALIAS` | `geodensidad` |
+| `SIGNING_KEY_PASSWORD` | la contraseña |
+
+## 3. Instalar
+
+- Abra la última ejecución en *Actions*, descargue el artefacto **GeoDensidad-apk-N** e instale `debug/app-debug.apk`.
+- La **primera vez** con la clave fija hay que desinstalar la versión anterior (fue firmada con otra clave). Desde ahí, cada APK nuevo se instala encima y conserva los registros.
+- Si la ejecución muestra el aviso *"Sin secret SIGNING_KEYSTORE_BASE64"*, los Secrets no están configurados.
+
+Compilación local: `./gradlew :app:assembleDebug` (sin las variables `SIGNING_*` se usa la firma de depuración de esa máquina).

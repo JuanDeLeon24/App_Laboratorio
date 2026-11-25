@@ -1,4 +1,4 @@
-# GeoDensidad 1.1.0
+# GeoDensidad 1.2
 
 App Android sencilla que reproduce la hoja **'Cono de arena'** del formato Excel *Densidad o masa unitaria del suelo en el terreno – Método del cono de arena (I.N.V. E – 161)*, con la colorimetría de **Construcciones El Cóndor S.A.**
 
@@ -13,7 +13,7 @@ App Android sencilla que reproduce la hoja **'Cono de arena'** del formato Excel
 | Proyecto, Localización, Procedencia, PR inicial, PR final, Lado, Fecha, Parte del relleno, Lote, Registro | Se digitan (encabezado) |
 | Capa No., Espesor capa, PR, Costado | Se digitan por densidad |
 | **A** Peso frasco y arena inicial · **B** Peso frasco y arena restante · **D** Constante del cono · **F** Densidad de la arena · **H** Material retenido en 3/4 · **J** Peso material extraído húmedo · **L** Humedad | Se digitan por densidad (D y F se copian de la densidad anterior, como en el Excel) |
-| **I** Gravedad específica bulk · **Q** Densidad máxima de laboratorio · **R** Humedad óptima | Se digitan una vez por registro (I trae 2,667) |
+| **I** Gravedad específica bulk · **Q** Densidad máxima de laboratorio · **R** Humedad óptima | Se digitan en su fila dentro de la densidad; el valor es común a todas (I trae 2,667) |
 | **C, E, G, K, M, N, O, P, S** | Se calculan con las fórmulas del Excel |
 | Dm, s, k(n), Dm − k·s ≥ 0,95·De | Se calculan en el resumen con todas las densidades del registro |
 | Observaciones, Elaboró, Aprobó | Se digitan |
@@ -26,7 +26,7 @@ Diferencias deliberadas con el Excel: la humedad L y R se digitan en porcentaje 
 ./gradlew :app:assembleDebug
 ```
 
-APK en `app/build/outputs/apk/debug/app-debug.apk`. GitHub Actions lo genera en cada push (artefacto **GeoDensidad-apk**). Pruebas: `./gradlew :core:test :app:testDebugUnitTest` (60 pruebas).
+APK en `app/build/outputs/apk/debug/app-debug.apk`. GitHub Actions lo genera en cada push (artefacto **GeoDensidad-apk-N**). Para que las actualizaciones se instalen encima, configure la firma fija: [docs/INSTALACION_Y_ACTUALIZACION.md](docs/INSTALACION_Y_ACTUALIZACION.md). Pruebas: `./gradlew :core:test :app:testDebugUnitTest` (62 pruebas).
 
 ## Estructura
 

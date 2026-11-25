@@ -30,6 +30,22 @@ class RegistroTest {
         assertEquals(89.907877, Descriptive.of(res.map { it.value("S")!! }).mean!!, 5.1e-7)
     }
 
+    /** Valores del Excel 'Densidades_toyo (1).xlsx': L1 = 0,061 y Q = 2395 (resultados guardados por Excel). */
+    @Test fun excelActualizado() {
+        val base = registroDelExcel().copy(q = "2395")
+        val r = base.conDensidades(base.densidades.mapIndexed { k, d -> if (k == 0) d.copy(l = "0.061") else d })
+        val res = r.densidades.map { r.calcular(it) }
+        val pExcel = listOf(2292.577232302752, 2311.554430718544, 2320.713486681072, 2326.3029525344086, 2350.6987089569375, 2168.9736504396687, 2193.2035844365437, 2159.2540518210126, 2127.3899025226783, 2178.9521927512183)
+        val sExcel = listOf(95.7234752527245, 96.51584261872836, 96.89826666726815, 97.13164728744921, 98.15025924663622, 90.56257413109265, 91.57426239818554, 90.15674537874791, 88.82630073163583, 90.97921472865212)
+        res.forEachIndexed { k, x -> assertEquals(pExcel[k], x.value("P")!!, 1e-9); assertEquals(sExcel[k], x.value("S")!!, 1e-9) }
+    }
+
+    @Test fun sinQNoHayCompactacion() {
+        val r = registroDelExcel().copy(q = null)
+        val x = r.calcular(r.densidades[0])
+        assertNotNull(x.value("P")); assertNull(x.value("S"))
+    }
+
     @Test fun datoFaltanteNoEsCero() {
         val r = registroDelExcel().let { it.conDensidades(listOf(it.densidades[0].copy(j = null))) }
         val x = r.calcular(r.densidades[0])
