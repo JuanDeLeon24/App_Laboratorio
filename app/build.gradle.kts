@@ -23,12 +23,9 @@ android {
         applicationId = "com.geodensidad.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "1.1.0"
         resValue("string", "app_name", "GeoDensidad")
-        buildConfigField("int", "DB_SCHEMA_VERSION", "1")
-        buildConfigField("String", "TEMPLATE_BASE_VERSION", "\"1.0.0\"")
-        buildConfigField("int", "BACKUP_FORMAT", "1")
     }
 
     signingConfigs {
@@ -87,8 +84,6 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.datastore.preferences)
-    implementation(libs.androidx.exifinterface)
-    implementation(libs.coil.compose)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 

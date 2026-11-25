@@ -28,8 +28,7 @@ Canal inicial de distribución propuesto: distribución interna del APK firmado 
 ## Actualizar sin perder datos
 
 - Mismo `applicationId` (`com.geodensidad.app`), misma clave de firma y `versionCode` mayor.
-- Instalar el nuevo APK **encima** (sin desinstalar). Antes de migrar la base, la app guarda una copia en `files/backups/pre-migracion/`.
-- Recomendado: crear un respaldo completo antes de actualizar.
+- Instalar el nuevo APK **encima** (sin desinstalar). - Recomendado: crear un respaldo completo antes de actualizar.
 - **Pendiente de verificar en dispositivo**: la actualización sobre una instalación existente no se ha probado físicamente (ver LIMITACIONES).
 
 Desinstalar o "borrar datos" elimina toda la información local; solo se recupera con un respaldo.

@@ -1,10 +1,11 @@
 package com.geodensidad.app
 
 import android.graphics.Bitmap
-import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import org.junit.Assert.assertTrue
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -12,10 +13,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.io.File
 
-/**
- * Recorrido de la interfaz real (Compose) bajo Robolectric: crear proyecto → actividad →
- * jornada → muestra → capturar mediciones → ver resultado. Guarda capturas de pantalla.
- */
+/** Recorrido de la interfaz real: lista → nuevo registro → digitar una densidad → ver C…S. */
 @RunWith(RobolectricTestRunner::class)
 @Config(qualifiers = "w411dp-h914dp-xhdpi")
 class UiFlowTest {
@@ -30,67 +28,54 @@ class UiFlowTest {
         File(out, "$name.png").outputStream().use { bmp.compress(Bitmap.CompressFormat.PNG, 100, it) }
     }
 
-    private fun waitText(t: String, substring: Boolean = true) {
-        try { rule.waitUntil(20_000) { org.robolectric.shadows.ShadowLooper.idleMainLooper(300, java.util.concurrent.TimeUnit.MILLISECONDS); (rule.onAllNodesWithText(t, substring = substring).fetchSemanticsNodes().isNotEmpty() || rule.onAllNodesWithContentDescription(t).fetchSemanticsNodes().isNotEmpty()) } }
-        catch (e: Throwable) { throw AssertionError("No apareció «$t». Pantalla:\n" + runCatching { rule.onRoot(useUnmergedTree = true).printToString(maxDepth = 60) }.getOrDefault("?"), e) }
+    private fun esperar(t: String) = try {
+        rule.waitUntil(20_000) {
+            org.robolectric.shadows.ShadowLooper.idleMainLooper(300, java.util.concurrent.TimeUnit.MILLISECONDS)
+            rule.onAllNodesWithText(t, substring = true).fetchSemanticsNodes().isNotEmpty() || rule.onAllNodesWithContentDescription(t).fetchSemanticsNodes().isNotEmpty()
+        }
+    } catch (e: Throwable) { throw AssertionError("No apareció «$t»:\n" + rule.onRoot().printToString(40), e) }
+
+    private fun lista() = rule.onAllNodes(hasScrollToNodeAction())[0]
+    private fun escribir(label: String, v: String) {
+        val m = hasText(label, substring = true) and hasSetTextAction()
+        lista().performScrollToNode(m); rule.onNode(m).performTextReplacement(v)
     }
 
-    @Test fun recorridoPrincipal() {
-        waitText("Nuevo proyecto")
-        shot("01_inicio")
-        // Proyecto, actividad y jornada por el repositorio; la captura se recorre por la interfaz.
-        val c = TestSupport.app.container
-        val sid = kotlinx.coroutines.runBlocking {
-            val p = c.repo.createProject("VA-01", "Vías de acceso", "Entidad de prueba")
-            val a = c.repo.createActivity(p, "Toma de densidades para granulares")
-            c.repo.createSample(a, c.repo.createJourney(a))
-        }
-        waitText("Vías de acceso")
-        rule.onNodeWithText("VA-01 · Entidad de prueba").performClick()
-        waitText("Toma de densidades para granulares")
-        shot("02_proyecto")
-        rule.onNodeWithText("Toma de densidades para granulares").performClick()
-        waitText("DEN-0001")
-        shot("03_actividad")
-        rule.onNodeWithText("DEN-0001", substring = true).performClick()
-        waitText("Revisión 1")
-        fun num(label: String, v: String) {
-            val m = hasText(label, substring = true) and hasSetTextAction()
-            rule.onAllNodes(hasScrollToNodeAction())[0].performScrollToNode(m)
-            rule.onNode(m).performTextReplacement(v)
-        }
-        num("PR *", "PR 003+150")
-        num("D · Constante del cono", "1735"); num("F · Densidad de la arena", "1,396")
-        num("A · Peso frasco y arena inicial", "7139"); num("B · Peso frasco y arena restante", "3317"); num("J · Peso material extraído", "3694"); num("H · Material retenido", "410"); num("L · Humedad", "6")
-        num("Q · Densidad máxima", "2495"); num("R · Humedad óptima", "6,68")
-        rule.onAllNodes(hasScrollToNodeAction())[0].performScrollToIndex(0)
-        waitText("91,98 %")
+    @Test fun capturarUnaDensidad() {
+        esperar("Nuevo registro")
+        shot("01_lista_vacia")
+        rule.onNodeWithContentDescription("Nuevo registro").performClick()
+        esperar("Encabezado")
+        escribir("Proyecto", "Vías de acceso"); escribir("Registro", "7")
+        shot("02_encabezado")
+        escribir("Q · Densidad máxima", "2495"); escribir("R · Humedad óptima", "6,68")
+        escribir("A · Peso frasco y arena inicial", "7139"); escribir("B · Peso frasco y arena restante", "3317")
+        escribir("D · Constante del cono", "1735"); escribir("F · Densidad de la arena", "1,396")
+        escribir("H · Material retenido", "410"); escribir("J · Peso material extraído", "3694"); escribir("L · Humedad", "6")
+        lista().performScrollToNode(hasText("S · Compactación"))
+        esperar("91,98 %")
         rule.onNodeWithText("2.294,97 kg/m³").assertExists()
-        rule.onAllNodes(hasScrollToNodeAction())[0].performScrollToNode(hasText("Densidad seca corregida (Di)"))
-        shot("04_muestra_resultado")
-        rule.onAllNodes(hasScrollToNodeAction())[0].performScrollToNode(hasText("Resultados y trazabilidad")); rule.onNodeWithText("Resultados y trazabilidad").performClick()
-        rule.onAllNodes(hasScrollToNodeAction())[0].performScrollToNode(hasText("P  Densidad seca corregida", substring = true)); rule.onNodeWithText("P  Densidad seca corregida", substring = true).performClick()
-        rule.onNodeWithText("P = [O × (100 − K)] / [100 − ((O × K) / (I × 1000))]").assertExists()
-        shot("05_trazabilidad")
-        // el guardado automático persiste en la base
-        waitText("Guardado ")
-        val saved = kotlinx.coroutines.runBlocking { TestSupport.app.container.db.samples().count() }
-        assertTrue(saved == 1)
+        shot("03_densidad_resultados")
+        lista().performScrollToNode(hasText("Agregar")); rule.onNodeWithText("Agregar").performClick()
+        esperar("Densidad No. 2")
+        lista().performScrollToNode(hasText("Resumen del registro"))
+        shot("04_resumen")
+        val c = (rule.activity.application as GeoDensidadApp).container
+        rule.waitUntil(10_000) { org.robolectric.shadows.ShadowLooper.idleMainLooper(300, java.util.concurrent.TimeUnit.MILLISECONDS); runBlocking { c.db.registros().contar() } == 1 }
+        assertEquals("7", runBlocking { c.db.registros().todos().first() }.single().registro)
     }
 
-    @Test fun panelYLoteConDatosDemostrativos() {
-        kotlinx.coroutines.runBlocking { TestSupport.app.container.demo.load() }
-        waitText("DEMO – Vías de acceso")
-        shot("06_inicio_demo")
-        rule.onNodeWithText("Toma de densidades para granulares (DEMO)").performClick()
-        waitText("DEN-0001")
-        shot("07_lista_muestras")
-        rule.onNodeWithText("Lotes").performClick()
-        waitText("Provisional: no cumple")
-        shot("08_lotes")
-        rule.onNodeWithText("Panel").performClick()
-        waitText("Compactación media")
-        rule.onNodeWithText("89,91 %", substring = true).assertExists()
-        shot("09_panel")
+    @Test fun listaConRegistro() {
+        val c = (rule.activity.application as GeoDensidadApp).container
+        runBlocking { c.db.registros().guardar(registroDelExcel()) }
+        esperar("Registro 1")
+        shot("05_lista")
+        rule.onNodeWithText("Registro 1", substring = true).performClick()
+        esperar("Encabezado")
+        lista().performScrollToNode(hasText("Densidad No. 1"))
+        shot("06_registro_densidad")
+        lista().performScrollToNode(hasText("Resumen del registro"))
+        esperar("NO CUMPLE")
+        shot("07_registro_resumen")
     }
 }

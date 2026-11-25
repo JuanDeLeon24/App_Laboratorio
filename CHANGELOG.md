@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.0 (versionCode 2) — 2026-11-25 — App simplificada
+- La app reproduce directamente la hoja 'Cono de arena': un registro = una hoja (encabezado, hasta 10 densidades, resumen, observaciones y firmas).
+- Solo se digitan las celdas de datos del Excel; C, E, G, K, M, N, O, P y S se calculan.
+- Dos pantallas: lista de registros y registro. Sin secciones plegables.
+- PDF con forma de planilla (filas A–S × densidades) y resumen con el criterio del formato.
+- Se retiraron proyectos, actividades, jornadas, catálogos, lotes, estados, revisiones, fotografías, campos personalizados, historial e informe global.
+- Base de datos nueva (`geodensidad_registros.db`): no reutiliza datos de la 1.0.0.
+
 ## 1.0.0 — ajuste posterior
 - El formulario de muestra pide exactamente los campos del Excel 'Cono de arena' (encabezado, densidad, filas A–R, irregularidades >15 mm, observaciones, elaboró, aprobó), con sus nombres y orden. Nuevos campos: PR inicial, PR final, Lado, Registro, N° irregularidades >15 mm y Aprobó. El PDF individual los incluye.
 - La fecha del ensayo es solo fecha, como en el formato.

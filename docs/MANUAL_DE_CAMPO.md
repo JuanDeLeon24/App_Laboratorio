@@ -1,24 +1,15 @@
-# Manual breve de campo
+# Manual de campo
 
-1. **Configuración** (menú ⋮ → Configuración): escriba su nombre de responsable (atribución, no es una firma). Opcional: GPS en fotos.
-2. **Catálogos**: registre equipos, calibraciones (D y F), referencias de laboratorio (Q y humedad óptima) y materiales.
-3. **Proyecto → Actividad**. En la actividad (icono de ajustes) elija calibración, referencia, material y criterio predeterminados.
-4. **Jornadas**: fecha, responsable, frente de trabajo.
-5. **Nueva muestra**: el formulario pide exactamente los datos del formato Excel 'Cono de arena', en el mismo orden:
-   - *Encabezado*: Proyecto (automático), Localización, Procedencia, PR inicial, PR final, Lado, Fecha, Parte del relleno, Lote, Registro.
-   - *Densidad*: Densidad No. (automático), Capa No., Espesor capa, PR, Costado.
-   - *Datos del ensayo*: A, B, D, F, H, I, J, L (C, E, G, K, M, N, O, P y S se calculan).
-   - *Laboratorio*: Q (densidad máxima, De) y R (humedad óptima).
-   - *Observaciones y firmas*: N° irregularidades >15 mm, Observaciones, Elaboró, Aprobó.
-   Si la actividad tiene calibración y referencia predeterminadas, D, F, Q, R e I se proponen solos. Todo se guarda automáticamente ("Guardado hh:mm:ss").
-   - Use coma decimal. Campo vacío = dato faltante (no es cero).
-   - Humedades en porcentaje: digite `6` para 6 %.
-   - Errores en rojo junto al campo; advertencias en ámbar.
-   - Abra *Resultados y trazabilidad* para ver la fórmula y los valores que produjeron cada resultado.
-6. **Fotografías**: botón Cámara o Galería. Toque una foto para escribir el pie, corregir la fecha (con motivo) o retirarla del informe.
-7. **Estados** (menú ⋮ de la muestra): Completa → Revisada → Aprobada. Una aprobada queda bloqueada; para corregirla use *Nueva revisión* (pide motivo).
-8. **Lotes**: agrupe muestras explícitamente; excluya con motivo. La evaluación es provisional mientras el criterio no esté validado.
-9. **PDF**: icono PDF en la muestra (individual) o pestaña *Informes* de la actividad (global con filtros). Los informes emitidos no cambian aunque cambien los datos.
-10. **Respaldo** al final de cada jornada: menú → Respaldos → *Guardar respaldo…* en una ubicación fuera del teléfono.
+1. **Nuevo registro** (botón inferior). Un registro es una hoja del formato.
+2. **Encabezado**: Proyecto, Localización, Procedencia, PR inicial, PR final, Lado, Fecha, Parte del relleno, Lote, Registro.
+3. **Datos comunes**: I (gravedad específica bulk, ya trae 2,667), Q (densidad máxima de laboratorio) y R (humedad óptima en %).
+4. **Densidades**: los botones 1, 2, 3… eligen la densidad; *Agregar* crea la siguiente (máximo 10; copia D y F de la anterior).
+   Digite Capa, Espesor, PR, Costado y los valores A, B, D, F, H, J, L. Las filas grises (C, E, G, K, M, N, O) y las azules (P y S) se calculan solas.
+   - Coma decimal. Humedad en porcentaje: digite `6` para 6 %.
+   - Un campo vacío es un dato faltante, no un cero.
+5. **Resumen del registro**: tabla de todas las densidades, compactación promedio y criterio Dm − k·s ≥ 0,95·De. Toque una fila para ir a esa densidad.
+6. **Observaciones y firmas**: Observaciones, Elaboró, Aprobó.
+7. **PDF**: icono PDF arriba a la derecha; se abre o se comparte.
 
-Puede salir de una actividad y entrar a otra cuando quiera: los borradores se conservan. La app funciona sin internet.
+Todo se guarda solo. En la lista, el menú ⋮ de cada registro permite crear un registro nuevo con el mismo encabezado o eliminarlo.
+**Respaldo**: menú ⋮ de la lista → *Guardar respaldo* (archivo .zip, no cifrado). *Restaurar respaldo* reemplaza los registros actuales (antes guarda una copia automática).

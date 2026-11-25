@@ -27,7 +27,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.geodensidad.app.domain.SampleStatus
 import com.geodensidad.app.ui.theme.Condor
 import com.geodensidad.core.number.DecimalText
 import com.geodensidad.core.number.ParsedDecimal
@@ -46,19 +45,6 @@ fun AppBar(title: String, subtitle: String? = null, onBack: (() -> Unit)? = null
         actions = actions,
         colors = TopAppBarDefaults.topAppBarColors(containerColor = Condor.Navy, titleContentColor = Color.White, navigationIconContentColor = Color.White, actionIconContentColor = Color.White),
     )
-}
-
-/** Estado con texto e icono (no solo color). */
-@Composable
-fun StatusChip(status: SampleStatus, modifier: Modifier = Modifier) {
-    val (icon, color) = when (status) {
-        SampleStatus.DRAFT -> Icons.Default.EditNote to Condor.Steel
-        SampleStatus.COMPLETE -> Icons.Default.TaskAlt to Condor.Navy
-        SampleStatus.REVIEWED -> Icons.Default.FactCheck to Color(0xFF0D5C63)
-        SampleStatus.APPROVED -> Icons.Default.Verified to Condor.Ok
-        SampleStatus.VOID -> Icons.Default.Block to Condor.Bad
-    }
-    Pill(status.label, icon, color, modifier)
 }
 
 @Composable

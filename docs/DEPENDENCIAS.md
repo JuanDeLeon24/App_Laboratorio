@@ -14,8 +14,6 @@ Todas las versiones están fijadas en `gradle/libs.versions.toml` (sin rangos di
 | Navigation Compose | 2.8.5 | Apache 2.0 | Navegación |
 | Room (runtime, ktx, compiler) | 2.6.1 | Apache 2.0 | Persistencia SQLite |
 | DataStore Preferences | 1.1.1 | Apache 2.0 | Preferencias |
-| ExifInterface | 1.3.7 | Apache 2.0 | Metadatos de fotos |
-| Coil Compose | 2.7.0 | Apache 2.0 | Miniaturas |
 | android.graphics.pdf.PdfDocument | plataforma | Apache 2.0 (AOSP) | Generación PDF en la app |
 
 Solo pruebas: JUnit 4.13.2 (EPL 1.0), Robolectric 4.14.1 (MIT), AndroidX Test core 1.6.1 (Apache 2.0), Room testing 2.6.1, Compose UI test (Apache 2.0), Apache PDFBox 3.0.3 (Apache 2.0), fuentes DejaVu (licencia libre Bitstream Vera/DejaVu, ver `core/src/testFixtures/resources/geodensidad-test-fonts/LICENSE-DejaVu.txt`).

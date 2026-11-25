@@ -95,6 +95,8 @@ object ReportRenderer {
     }
 
     /** Encabezado institucional, marca de borrador y pie con paginación "Página X de Y". */
+    fun decorate(l: Layout, t: TemplateInfo, issue: IssueInfo): PageList = finish(l, t, issue)
+
     private fun finish(l: Layout, t: TemplateInfo, issue: IssueInfo): PageList {
         val total = l.pages.size
         val m = l.m
