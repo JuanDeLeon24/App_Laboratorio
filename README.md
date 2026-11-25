@@ -5,6 +5,7 @@ App Android sencilla que reproduce la hoja **'Cono de arena'** del formato Excel
 - **Un registro = una hoja del Excel**: encabezado + hasta 10 densidades + resumen + observaciones y firmas.
 - **Solo se digitan las celdas que en el Excel son datos** (números fríos y textos). Las filas con fórmula se calculan solas.
 - Funciona sin internet. Guarda automáticamente. Genera el PDF con forma de planilla.
+- **Importa y exporta el Excel de la plantilla (.xlsx)**: misma hoja, mismas celdas y fórmulas; sirve para compartir jornadas entre teléfonos y con el computador.
 
 ## Qué se digita y qué se calcula
 
@@ -26,7 +27,7 @@ Diferencias deliberadas con el Excel: el resumen usa todas las densidades del re
 ./gradlew :app:assembleDebug
 ```
 
-APK en `app/build/outputs/apk/debug/app-debug.apk`. GitHub Actions lo genera en cada push (artefacto **GeoDensidad-apk-N**). Para que las actualizaciones se instalen encima, configure la firma fija: [docs/INSTALACION_Y_ACTUALIZACION.md](docs/INSTALACION_Y_ACTUALIZACION.md). Pruebas: `./gradlew :core:test :app:testDebugUnitTest` (62 pruebas).
+APK en `app/build/outputs/apk/debug/app-debug.apk`. GitHub Actions lo genera en cada push (artefacto **GeoDensidad-apk-N**). Para que las actualizaciones se instalen encima, configure la firma fija: [docs/INSTALACION_Y_ACTUALIZACION.md](docs/INSTALACION_Y_ACTUALIZACION.md). Pruebas: `./gradlew :core:test :app:testDebugUnitTest` (71 pruebas).
 
 ## Estructura
 

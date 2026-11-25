@@ -128,6 +128,15 @@ class RegistroViewModel(private val c: AppContainer, h: SavedStateHandle) : View
         seleccion.value = (n - 1).coerceAtLeast(0)
     }
 
+    fun excel(compartir: (File) -> Unit) {
+        val r = registro.value ?: return
+        viewModelScope.launch {
+            job?.cancel(); guardar()
+            runCatching { c.intercambio.archivo(listOf(r), "Registro-${r.registro.ifBlank { "SN" }}-${r.fecha}.xlsx") }
+                .onSuccess(compartir).onFailure { mensaje.value = "No se exportó: ${it.message}" }
+        }
+    }
+
     fun pdf(abrir: (File) -> Unit) {
         val r = registro.value ?: return
         if (generando.value) return
@@ -169,6 +178,11 @@ fun RegistroScreen(volver: () -> Unit) {
     Scaffold(
         topBar = {
             AppBar("Registro ${reg?.registro?.ifBlank { null } ?: ""}".trim(), guardado.ifBlank { null }, volver) {
+                IconButton(onClick = { vm.excel { f ->
+                    val uri = FileProvider.getUriForFile(ctx, ctx.packageName + ".files", f)
+                    ctx.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                        .putExtra(Intent.EXTRA_STREAM, uri).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION), "Compartir Excel"))
+                } }) { Icon(Icons.Default.TableView, "Exportar a Excel") }
                 if (generando) CircularProgressIndicator(Modifier.size(24.dp), color = Color.White, strokeWidth = 2.dp)
                 else IconButton(onClick = { vm.pdf(abrirPdf) }) { Icon(Icons.Default.PictureAsPdf, "Generar PDF") }
             }

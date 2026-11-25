@@ -1,6 +1,9 @@
 # Changelog
 
 ## 1.2.x — 2026-11-25
+- **Importar Excel (.xlsx)**: cada hoja con el formato 'Cono de arena' se convierte en un registro (encabezado, densidades C–L, I, Q, R, observaciones y nombres). Funciona con el Excel original de la plantilla y con los exportados por la app. También se puede abrir/compartir un .xlsx hacia GeoDensidad.
+- **Exportar a Excel**: uno o varios registros (toda la lista o el resultado de la búsqueda, p. ej. una fecha/jornada) en un .xlsx con las mismas celdas y fórmulas de la plantilla (una hoja por registro). Se abre en Excel, LibreOffice o Google Sheets.
+- Al reimportar un archivo exportado por la app, el registro se actualiza (no se duplica): el identificador va en la fila 56 de cada hoja.
 - L (humedad) y R (humedad óptima) se digitan en DECIMAL, igual que en el Excel (0,061 y 0,0668).
 - En A, B, D, H, J y Q el punto de miles se reconoce: «2.395» = 2395. En F, I, L y R el punto es decimal («1.396» = 1,396). Bajo cada campo se muestra el valor interpretado.
 - Avisos si Q está fuera de 1.000–3.000 kg/m³ o si L/R parecen digitados en porcentaje.

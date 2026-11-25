@@ -13,3 +13,10 @@
 
 Todo se guarda solo. En la lista, el menú ⋮ de cada registro permite crear un registro nuevo con el mismo encabezado o eliminarlo.
 **Respaldo**: menú ⋮ de la lista → *Guardar respaldo* (archivo .zip, no cifrado). *Restaurar respaldo* reemplaza los registros actuales (antes guarda una copia automática).
+
+## Intercambio con Excel y entre teléfonos
+
+- **Importar**: menú ⋮ de la lista → *Importar Excel (.xlsx)*, o abra/comparta el archivo .xlsx hacia GeoDensidad. Cada hoja con el formato 'Cono de arena' se vuelve un registro. Sirve con la plantilla original (toma los valores que el Excel tiene guardados, incluso los del encabezado) y con archivos exportados por otra instalación.
+- **Exportar una jornada**: escriba en el buscador la fecha o el lote (p. ej. `2026-11-25`) y use menú ⋮ → *Exportar los N de la búsqueda a Excel*. Sin búsqueda se exportan todos. Cada registro queda en una hoja con las mismas celdas y fórmulas de la plantilla.
+- **Un solo registro**: dentro del registro, icono de tabla (arriba) → compartir por WhatsApp, correo, Drive, etc.
+- Si se importa un archivo exportado por GeoDensidad, los registros que ya existan se **actualizan** (no se duplican). No borre la fila 56 del Excel: lleva ese identificador.

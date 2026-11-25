@@ -49,6 +49,21 @@ class RegistrosViewModel(private val c: AppContainer) : ViewModel() {
 
     fun eliminar(r: Registro) = viewModelScope.launch { c.db.registros().eliminar(r) }
 
+    val recibido = c.archivoRecibido
+
+    fun importarExcel(uri: android.net.Uri) = viewModelScope.launch {
+        c.archivoRecibido.value = null
+        runCatching { c.context.contentResolver.openInputStream(uri)!!.use { c.intercambio.importar(it) } }
+            .onSuccess { mensaje.value = it.texto }
+            .onFailure { mensaje.value = "No se importó: ${it.message}" }
+    }
+
+    fun exportarExcel(uri: android.net.Uri, lista: List<Registro>) = viewModelScope.launch {
+        runCatching { c.context.contentResolver.openOutputStream(uri, "w")!!.use { c.intercambio.exportar(lista, it) } }
+            .onSuccess { mensaje.value = "Excel guardado con ${lista.size} registro(s)" }
+            .onFailure { mensaje.value = "No se exportó: ${it.message}" }
+    }
+
     fun exportar(uri: android.net.Uri) = viewModelScope.launch {
         runCatching { c.respaldo.exportar(uri) }.onSuccess { mensaje.value = "Respaldo guardado ($it registros). El archivo no está cifrado." }
             .onFailure { mensaje.value = "No se pudo guardar: ${it.message}" }
@@ -74,12 +89,22 @@ fun RegistrosScreen(abrir: (String) -> Unit) {
     val guardar = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/zip")) { it?.let(vm::exportar) }
     val abrirArchivo = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { confirmarRestaurar = it }
     val filtrada = lista.filter { r -> buscar.isBlank() || listOf(r.registro, r.proyecto, r.localizacion, r.lote, r.fecha).any { it.contains(buscar, true) } }
+    val xlsx = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    val importar = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { it?.let(vm::importarExcel) }
+    val exportar = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument(xlsx)) { u -> u?.let { vm.exportarExcel(it, filtrada) } }
+    val recibido by vm.recibido.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
             AppBar("GeoDensidad", "Densidad en el terreno – cono de arena") {
                 IconButton(onClick = { menu = true }) { Icon(Icons.Default.MoreVert, "Menú") }
                 DropdownMenu(menu, { menu = false }) {
+                    DropdownMenuItem(text = { Text("Importar Excel (.xlsx)") }, leadingIcon = { Icon(Icons.Default.FileOpen, null) },
+                        onClick = { menu = false; importar.launch(arrayOf(xlsx, "application/octet-stream", "*/*")) })
+                    DropdownMenuItem(text = { Text(if (buscar.isBlank()) "Exportar todos a Excel (${filtrada.size})" else "Exportar los ${filtrada.size} de la búsqueda a Excel") },
+                        leadingIcon = { Icon(Icons.Default.TableView, null) }, enabled = filtrada.isNotEmpty(),
+                        onClick = { menu = false; exportar.launch("Densidades-${if (buscar.isBlank()) LocalDate.now().toString() else buscar.replace(Regex("[^A-Za-z0-9-]"), "_")}.xlsx") })
+                    HorizontalDivider()
                     DropdownMenuItem(text = { Text("Guardar respaldo") }, leadingIcon = { Icon(Icons.Default.SaveAlt, null) },
                         onClick = { menu = false; guardar.launch("GeoDensidad-respaldo-${LocalDate.now()}.zip") })
                     DropdownMenuItem(text = { Text("Restaurar respaldo") }, leadingIcon = { Icon(Icons.Default.Restore, null) },
@@ -125,6 +150,10 @@ fun RegistrosScreen(abrir: (String) -> Unit) {
     confirmarRestaurar?.let { uri ->
         ConfirmDialog("Restaurar respaldo", "Los registros actuales se reemplazarán por los del archivo. Antes se guarda una copia automática dentro de la app.", "Restaurar", true,
             onConfirm = { vm.restaurar(uri) }, onDismiss = { confirmarRestaurar = null })
+    }
+    recibido?.let { uri ->
+        ConfirmDialog("Importar Excel", "¿Importar las hojas 'Cono de arena' de este archivo? Si un registro ya existe (exportado desde GeoDensidad), se actualiza.", "Importar",
+            onConfirm = { vm.importarExcel(uri) }, onDismiss = { vm.recibido.value = null })
     }
     eliminar?.let { r ->
         ConfirmDialog("Eliminar registro", "Se eliminará el registro ${r.registro.ifBlank { "sin número" }} con sus ${r.densidades.size} densidades. Esta acción no se puede deshacer.", "Eliminar", true,

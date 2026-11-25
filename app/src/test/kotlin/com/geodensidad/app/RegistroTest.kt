@@ -116,3 +116,29 @@ class DigitacionComoExcelTest {
         assertEquals(95.7234752527245, x.value("S")!!, 1e-9)
     }
 }
+
+@RunWith(RobolectricTestRunner::class)
+class IntercambioExcelTest {
+    private val c get() = ApplicationProvider.getApplicationContext<GeoDensidadApp>().container
+
+    @Test fun importarExcelDelUsuarioYExportarDeVuelta() = runBlocking {
+        val archivo = File("../core/src/test/resources/excel/Densidades_toyo_1.xlsx")
+        val res = archivo.inputStream().use { c.intercambio.importar(it) }
+        assertEquals(1, res.nuevos); assertEquals(listOf("Hoja1"), res.hojasIgnoradas)
+        val r = c.db.registros().todos().first().single()
+        assertEquals("Vias de acceso Túnel del Toyo", r.proyecto); assertEquals(10, r.densidades.size)
+        assertEquals(95.7234752527245, r.calcular(r.densidades[0]).value("S")!!, 1e-9)
+        // exportar → importar en "otra instalación": mismo id → se actualiza, no se duplica
+        val out = ByteArrayOutputStream().also { c.intercambio.exportar(listOf(r.copy(observaciones = "editado")), it) }.toByteArray()
+        val res2 = c.intercambio.importar(out.inputStream())
+        assertEquals(0, res2.nuevos); assertEquals(1, res2.actualizados)
+        assertEquals("editado", c.db.registros().obtener(r.id)!!.observaciones)
+        assertEquals(1, c.db.registros().contar())
+        Unit
+    }
+
+    @Test fun archivoSinPlantilla() = runBlocking {
+        try { c.intercambio.importar("no es excel".byteInputStream()); fail() } catch (e: Exception) {}
+        Unit
+    }
+}

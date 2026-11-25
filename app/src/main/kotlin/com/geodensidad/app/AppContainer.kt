@@ -6,6 +6,7 @@ import com.geodensidad.app.report.AndroidPdfWriter
 import com.geodensidad.app.report.PdfService
 import com.geodensidad.app.report.PdfWriterTarget
 import com.geodensidad.app.report.Respaldo
+import com.geodensidad.app.report.Intercambio
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -20,4 +21,7 @@ class AppContainer(val context: Context) {
     var pdfWriterFactory: () -> PdfWriterTarget = { AndroidPdfWriter() }
     val pdf get() = PdfService(context, pdfWriterFactory)
     val respaldo get() = Respaldo(context, { db }, ::closeDb)
+    val intercambio get() = Intercambio(context) { db }
+    /** Archivo .xlsx recibido desde otra app (Abrir con / Compartir), pendiente de importar. */
+    val archivoRecibido = kotlinx.coroutines.flow.MutableStateFlow<android.net.Uri?>(null)
 }
