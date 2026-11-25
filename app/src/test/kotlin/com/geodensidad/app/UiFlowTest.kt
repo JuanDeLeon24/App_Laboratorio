@@ -51,9 +51,9 @@ class UiFlowTest {
         escribir("A · Peso frasco y arena inicial", "7139"); escribir("B · Peso frasco y arena restante", "3317")
         escribir("D · Constante del cono", "1735"); escribir("F · Densidad de la arena", "1,396")
         escribir("H · Material retenido", "410"); escribir("I · Gravedad específica bulk", "2,667")
-        escribir("J · Peso material extraído", "3694"); escribir("L · Humedad", "6")
+        escribir("J · Peso material extraído", "3694"); escribir("L · Humedad", "0,06")
         lista().performScrollToNode(hasText("No se calcula la compactación", substring = true)) // sin Q todavía no hay S
-        escribir("Q · Densidad máxima", "2495"); escribir("R · Humedad óptima", "6,68")
+        escribir("Q · Densidad máxima", "2.495"); escribir("R · Humedad óptima", "0,0668")
         lista().performScrollToNode(hasText("Compactación del terreno", substring = true))
         esperar("91,98 %")
         rule.onNodeWithText("2.294,97 kg/m³").assertExists()

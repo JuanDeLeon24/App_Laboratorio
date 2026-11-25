@@ -24,6 +24,12 @@ class DecimalTextTest {
         assertEquals("6,68", DecimalText.fractionToPercentText("0.0668"))
         assertEquals("", DecimalText.fractionToPercentText(null))
     }
+    @Test fun separadorDeMilesSegunCampo() {
+        fun g(t: String) = (DecimalText.parseCampo(t, true) as ParsedDecimal.Valid).value
+        fun c(t: String) = (DecimalText.parseCampo(t, false) as ParsedDecimal.Valid).value
+        assertEquals(BigDecimal("2395"), g("2.395")); assertEquals(BigDecimal("7139.5"), g("7.139,5")); assertEquals(BigDecimal("2395"), g("2395"))
+        assertEquals(BigDecimal("1.396"), c("1.396")); assertEquals(BigDecimal("0.061"), c("0,061")); assertEquals(BigDecimal("0.0668"), c("0.0668"))
+    }
     @Test fun formatoEspanol() {
         assertEquals("2.294,97", Fmt.num(2294.972397, 2))
         assertEquals("91,98", Fmt.num(91.982862, 2))

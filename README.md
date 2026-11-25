@@ -18,7 +18,7 @@ App Android sencilla que reproduce la hoja **'Cono de arena'** del formato Excel
 | Dm, s, k(n), Dm − k·s ≥ 0,95·De | Se calculan en el resumen con todas las densidades del registro |
 | Observaciones, Elaboró, Aprobó | Se digitan |
 
-Diferencias deliberadas con el Excel: la humedad L y R se digitan en porcentaje (6 para 6 %); el resumen usa todas las densidades del registro (el Excel mezclaba 5, 8 y 10 y tenía referencias rotas `#REF!`). Ver [docs/CRITERIOS.md](docs/CRITERIOS.md) y [docs/FORMULAS.md](docs/FORMULAS.md).
+Diferencias deliberadas con el Excel: el resumen usa todas las densidades del registro (el Excel mezclaba 5, 8 y 10 y tenía referencias rotas `#REF!`). Ver [docs/CRITERIOS.md](docs/CRITERIOS.md) y [docs/FORMULAS.md](docs/FORMULAS.md).
 
 ## Compilar
 

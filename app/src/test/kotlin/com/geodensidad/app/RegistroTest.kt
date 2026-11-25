@@ -100,3 +100,19 @@ class RegistroTest {
         Unit
     }
 }
+
+/** Reproduce el PDF del usuario: L = "0,061" (decimal) y Q = "2.395" (punto de miles) deben dar lo mismo que el Excel. */
+@RunWith(RobolectricTestRunner::class)
+class DigitacionComoExcelTest {
+    @Test fun lDecimalYQConPuntoDeMiles() {
+        val l = (com.geodensidad.app.ui.interpretar("l", "0,061") as com.geodensidad.core.number.ParsedDecimal.Valid).value
+        val q = (com.geodensidad.app.ui.interpretar("q", "2.395") as com.geodensidad.core.number.ParsedDecimal.Valid).value
+        val f = (com.geodensidad.app.ui.interpretar("f", "1.396") as com.geodensidad.core.number.ParsedDecimal.Valid).value
+        assertEquals(0.061, l.toDouble(), 0.0); assertEquals(2395.0, q.toDouble(), 0.0); assertEquals(1.396, f.toDouble(), 0.0)
+        val base = registroDelExcel().copy(q = q.toPlainString())
+        val r = base.conDensidades(listOf(base.densidades[0].copy(l = l.toPlainString(), f = f.toPlainString())))
+        val x = r.calcular(r.densidades[0])
+        assertEquals(2292.577232302752, x.value("P")!!, 1e-9)
+        assertEquals(95.7234752527245, x.value("S")!!, 1e-9)
+    }
+}

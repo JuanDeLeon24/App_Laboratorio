@@ -60,7 +60,7 @@ class RegistroViewModel(private val c: AppContainer, h: SavedStateHandle) : View
         viewModelScope.launch {
             val r = c.db.registros().obtener(id) ?: return@launch
             registro.value = r
-            val t = mutableMapOf("i" to DecimalText.storedToEditText(r.i), "q" to DecimalText.storedToEditText(r.q), "r" to DecimalText.fractionToPercentText(r.r))
+            val t = mutableMapOf("i" to DecimalText.storedToEditText(r.i), "q" to DecimalText.storedToEditText(r.q), "r" to DecimalText.storedToEditText(r.r))
             r.densidades.forEachIndexed { n, d -> t.putAll(textosDe(n, d)) }
             textos.value = t
         }
@@ -69,7 +69,7 @@ class RegistroViewModel(private val c: AppContainer, h: SavedStateHandle) : View
     private fun textosDe(n: Int, d: Densidad) = mapOf(
         "$n.a" to DecimalText.storedToEditText(d.a), "$n.b" to DecimalText.storedToEditText(d.b), "$n.d" to DecimalText.storedToEditText(d.d),
         "$n.f" to DecimalText.storedToEditText(d.f), "$n.h" to DecimalText.storedToEditText(d.h), "$n.j" to DecimalText.storedToEditText(d.j),
-        "$n.l" to DecimalText.fractionToPercentText(d.l),
+        "$n.l" to DecimalText.storedToEditText(d.l),
     )
 
     fun editar(t: (Registro) -> Registro) {
@@ -88,21 +88,19 @@ class RegistroViewModel(private val c: AppContainer, h: SavedStateHandle) : View
 
     fun editarDensidad(n: Int, t: (Densidad) -> Densidad) = editar { r -> r.conDensidades(r.densidades.mapIndexed { i, d -> if (i == n) t(d) else d }) }
 
-    /** Número digitado: vacío o inválido = dato faltante (nunca cero). L y R se digitan en %. */
-    private fun canon(raw: String, porcentaje: Boolean): String? {
-        val p = if (porcentaje) DecimalText.percentTextToFraction(raw) else DecimalText.parse(raw)
-        return (p as? ParsedDecimal.Valid)?.let { DecimalText.canonical(it.value) }
-    }
+    /** Número digitado: vacío o inválido = dato faltante (nunca cero). L y R en decimal, como en el Excel. */
+    private fun canon(raw: String, campo: String): String? =
+        (interpretar(campo, raw) as? ParsedDecimal.Valid)?.let { DecimalText.canonical(it.value) }
 
     fun numeroComun(campo: String, raw: String) {
         textos.value = textos.value + (campo to raw)
-        val v = canon(raw, campo == "r")
+        val v = canon(raw, campo)
         editar { when (campo) { "i" -> it.copy(i = v); "q" -> it.copy(q = v); else -> it.copy(r = v) } }
     }
 
     fun numeroDensidad(n: Int, campo: String, raw: String) {
         textos.value = textos.value + ("$n.$campo" to raw)
-        val v = canon(raw, campo == "l")
+        val v = canon(raw, campo)
         editarDensidad(n) { d ->
             when (campo) { "a" -> d.copy(a = v); "b" -> d.copy(b = v); "d" -> d.copy(d = v); "f" -> d.copy(f = v); "h" -> d.copy(h = v); "j" -> d.copy(j = v); else -> d.copy(l = v) }
         }
@@ -231,8 +229,16 @@ private fun Par(a: @Composable () -> Unit, b: @Composable () -> Unit) =
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { Box(Modifier.weight(1f)) { a() }; Box(Modifier.weight(1f)) { b() } }
 
 @Composable
-private fun Numero(sym: String, nombre: String, unidad: String, texto: String, error: String? = null, ayuda: String? = null, onChange: (String) -> Unit) =
-    NumberInput(nombre, texto, unidad, onChange, symbol = sym, error = error, hint = ayuda)
+private fun Numero(sym: String, nombre: String, unidad: String, texto: String, error: String? = null, ayuda: String? = null, onChange: (String) -> Unit) {
+    val campo = sym.lowercase()
+    NumberInput(nombre, texto, unidad, onChange, symbol = sym, error = error, hint = ayuda,
+        parser = { interpretar(campo, it) },
+        eco = { v -> "Valor: " + Fmt.num(v.toDouble(), maxOf(0, minOf(4, v.stripTrailingZeros().scale()))) + (if (campo == "l" || campo == "r") " (= ${Fmt.num(v.toDouble() * 100, 2)} %)" else "") })
+}
+
+/** Campos de valores grandes: el punto entre grupos de 3 cifras es separador de miles. */
+private val camposGrandes = setOf("a", "b", "d", "h", "j", "q")
+fun interpretar(campo: String, raw: String): ParsedDecimal = DecimalText.parseCampo(raw, campo in camposGrandes)
 
 /** Explica en palabras simples por qué no se puede calcular S = P / Q × 100. */
 private fun motivoS(r: LegacyResult): String {
@@ -252,7 +258,7 @@ private fun Calculada(sym: String, nombre: String, valor: String, destacada: Boo
     }
 }
 
-private fun error(r: LegacyResult, sym: String) = r.issues.filter { it.field == sym && it.severity == Severity.BLOCKING }.joinToString("; ") { it.message }.ifBlank { null }
+private fun error(r: LegacyResult, sym: String) = r.issues.filter { it.field == sym }.joinToString("; ") { it.message }.ifBlank { null }
 private fun v(r: LegacyResult, s: String, dec: Int, unidad: String) = r.value(s)?.let { "${Fmt.num(it, dec)} $unidad" } ?: "—"
 
 @Composable
@@ -278,13 +284,13 @@ private fun DensidadCard(vm: RegistroViewModel, reg: Registro, n: Int, textos: M
             Numero("I", "Gravedad específica bulk", "g/cm³", textos["i"] ?: "", error(r, "I"), "Mismo valor para todas las densidades") { vm.numeroComun("i", it) }
             Numero("J", "Peso material extraído húmedo", "g", textos["$n.j"] ?: "", error(r, "J")) { vm.numeroDensidad(n, "j", it) }
             Calculada("K", "% retenido 3/4", v(r, "K", 2, "%"))
-            Numero("L", "Humedad", "%", textos["$n.l"] ?: "", error(r, "L")) { vm.numeroDensidad(n, "l", it) }
+            Numero("L", "Humedad (decimal)", "", textos["$n.l"] ?: "", error(r, "L"), "Como en el Excel: 0,061") { vm.numeroDensidad(n, "l", it) }
             Calculada("M", "Densidad húmeda de campo", v(r, "M", 2, "kg/m³"))
-            Calculada("N", "Humedad partículas finas", r.value("N")?.let { "${Fmt.num(it * 100, 2)} %" } ?: "—")
+            Calculada("N", "Humedad partículas finas (decimal)", r.value("N")?.let { Fmt.num(it, 4) } ?: "—")
             Calculada("O", "Densidad seca muestra total", v(r, "O", 2, "kg/m³"))
             Calculada("P", "Densidad seca corregida (Di)", v(r, "P", 2, "kg/m³"), destacada = true)
             Numero("Q", "Densidad máxima de laboratorio (De)", "kg/m³", textos["q"] ?: "", error(r, "Q"), "Mismo valor para todas las densidades") { vm.numeroComun("q", it) }
-            Numero("R", "Humedad óptima", "%", textos["r"] ?: "", error(r, "R"), "Mismo valor para todas las densidades") { vm.numeroComun("r", it) }
+            Numero("R", "Humedad óptima (decimal)", "", textos["r"] ?: "", error(r, "R"), "Como en el Excel: 0,0668 · mismo valor para todas") { vm.numeroComun("r", it) }
             Calculada("S", "Compactación del terreno", v(r, "S", 2, "%"), destacada = true)
             if (r.value("S") == null) Text(motivoS(r), color = Condor.Bad, style = MaterialTheme.typography.bodySmall)
         }

@@ -54,13 +54,13 @@ object PlanillaBuilder {
             row("I", "Gravedad específica bulk (g/cm³)", false) { n(it.i, 3) },
             row("J", "Peso material extraído húmedo (g)", false) { n(it.j, 0) },
             row("K", "% retenido 3/4 = H / J × 100", true) { res(it, "K", 2) },
-            row("L", "Humedad (%)", false) { it.l?.let { v -> Fmt.num(v * 100, 1) } ?: "—" },
+            row("L", "Humedad (decimal)", false) { n(it.l, 3) },
             row("M", "Densidad húmeda de campo (kg/m³) = J / G × 1000", true) { res(it, "M", 2) },
-            row("N", "Humedad part. fina (%) = ((100·L) − (0,02·K)) / (100 − K)", true) { c -> c.resultado.value("N")?.let { Fmt.num(it * 100, 2) } ?: "—" },
+            row("N", "Humedad part. fina (decimal) = ((100·L) − (0,02·K)) / (100 − K)", true) { res(it, "N", 4) },
             row("O", "Densidad seca de campo muestra total (kg/m³) = M / (1 + L)", true) { res(it, "O", 2) },
             row("P", "Densidad seca corregida part. finas Di (kg/m³)", true) { res(it, "P", 2) },
             row("Q", "Densidad máxima de laboratorio De (kg/m³)", false) { n(q, 0) },
-            row("R", "Humedad óptima (%)", false) { r?.let { v -> Fmt.num(v * 100, 2) } ?: "—" },
+            row("R", "Humedad óptima (decimal)", false) { n(r, 4) },
             row("S", "Compactación del terreno (%) = P / Q × 100", true) { res(it, "S", 2) },
         )
     }

@@ -86,15 +86,16 @@ fun TextInput(label: String, value: String, onChange: (String) -> Unit, modifier
 fun NumberInput(
     label: String, text: String, unit: String, onChange: (String) -> Unit, modifier: Modifier = Modifier,
     enabled: Boolean = true, error: String? = null, hint: String? = null, symbol: String? = null,
+    parser: (String) -> ParsedDecimal = DecimalText::parse, eco: ((java.math.BigDecimal) -> String)? = null,
 ) {
-    val parsed = DecimalText.parse(text)
+    val parsed = parser(text)
     val parseError = (parsed as? ParsedDecimal.Invalid)?.message
     val shownError = parseError ?: error
     OutlinedTextField(
         value = text, onValueChange = { v -> onChange(v.filter { it.isDigit() || it == ',' || it == '.' || it == '-' }) },
         label = { Text(if (symbol != null) "$symbol · $label" else label) }, enabled = enabled, singleLine = true,
         suffix = { Text(unit, color = Condor.Steel) }, isError = shownError != null,
-        supportingText = { Text(shownError ?: hint ?: if (parsed is ParsedDecimal.Empty) "Dato faltante" else "", color = if (shownError != null) MaterialTheme.colorScheme.error else Condor.Slate) },
+        supportingText = { Text(shownError ?: listOfNotNull((parsed as? ParsedDecimal.Valid)?.let { v -> eco?.invoke(v.value) }, hint).joinToString(" · ").ifBlank { if (parsed is ParsedDecimal.Empty) "Dato faltante" else "" }, color = if (shownError != null) MaterialTheme.colorScheme.error else Condor.Slate) },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Next),
         modifier = modifier.fillMaxWidth(),
     )

@@ -1,6 +1,9 @@
 # Changelog
 
 ## 1.2.x — 2026-11-25
+- L (humedad) y R (humedad óptima) se digitan en DECIMAL, igual que en el Excel (0,061 y 0,0668).
+- En A, B, D, H, J y Q el punto de miles se reconoce: «2.395» = 2395. En F, I, L y R el punto es decimal («1.396» = 1,396). Bajo cada campo se muestra el valor interpretado.
+- Avisos si Q está fuera de 1.000–3.000 kg/m³ o si L/R parecen digitados en porcentaje.
 - I, Q y R se digitan dentro de cada densidad, en su fila del Excel (H → I → J … P → Q → R → S); valen igual para todas las densidades.
 - Cuando S no se puede calcular, la app dice por qué (p. ej. falta Q).
 - Versión automática por compilación y firma fija desde los Secrets de GitHub: las actualizaciones se instalan encima sin desinstalar.

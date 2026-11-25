@@ -4,7 +4,8 @@
 2. **Encabezado**: Proyecto, Localización, Procedencia, PR inicial, PR final, Lado, Fecha, Parte del relleno, Lote, Registro.
 4. **Densidades**: los botones 1, 2, 3… eligen la densidad; *Agregar* crea la siguiente (máximo 10; copia D y F de la anterior).
    Digite Capa, Espesor, PR, Costado y A, B, D, F, H, I, J, L, Q, R en el mismo orden del Excel. I, Q y R valen igual para todas las densidades (al cambiarlos en una, cambian en todas). Las filas grises (C, E, G, K, M, N, O) y las azules (P y S) se calculan solas. Si S no aparece, la app indica qué falta (normalmente Q).
-   - Coma decimal. Humedad en porcentaje: digite `6` para 6 %.
+   - L y R en decimal, como en el Excel: `0,061` y `0,0668`.
+   - En A, B, D, H, J y Q puede usar punto de miles (`2.395` = 2395). Debajo de cada campo aparece el valor que entendió la app.
    - Un campo vacío es un dato faltante, no un cero.
 5. **Resumen del registro**: tabla de todas las densidades, compactación promedio y criterio Dm − k·s ≥ 0,95·De. Toque una fila para ir a esa densidad.
 6. **Observaciones y firmas**: Observaciones, Elaboró, Aprobó.

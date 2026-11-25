@@ -43,6 +43,18 @@ object DecimalText {
         }
     }
 
+    private val miles = Regex("^-?\\d{1,3}(\\.\\d{3})+(,\\d*)?$")
+
+    /**
+     * Interpretación según el campo. En campos de valores grandes (masas en g, densidad máxima en kg/m³)
+     * un punto seguido de grupos de 3 cifras es separador de miles: "2.395" = 2395 y "7.139,5" = 7139,5.
+     * En campos pequeños (F, I, L, R) el punto es decimal: "1.396" = 1,396.
+     */
+    fun parseCampo(raw: String?, valoresGrandes: Boolean): ParsedDecimal {
+        val t = raw?.trim().orEmpty()
+        return if (valoresGrandes && miles.matches(t)) parse(t.replace(".", "")) else parse(t)
+    }
+
     /** Representación canónica de almacenamiento: decimal plano con punto, sin exponente. */
     fun canonical(value: BigDecimal): String = value.stripTrailingZeros().toPlainString().let { if (it == "-0") "0" else it }
 
