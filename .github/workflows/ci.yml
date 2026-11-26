@@ -29,11 +29,28 @@ jobs:
           SIGNING_KEYSTORE_BASE64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
         run: |
           if [ -n "$SIGNING_KEYSTORE_BASE64" ]; then
-            echo "$SIGNING_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/geodensidad.jks"
+            if ! echo "$SIGNING_KEYSTORE_BASE64" | tr -d ' \r\n\t' | base64 -d > "$RUNNER_TEMP/geodensidad.jks" 2>/dev/null; then
+              echo "::error::El secret SIGNING_KEYSTORE_BASE64 no es base64 válido: péguelo completo (termina en ==)."; exit 1
+            fi
             echo "SIGNING_KEYSTORE_FILE=$RUNNER_TEMP/geodensidad.jks" >> "$GITHUB_ENV"
           else
             echo "::warning::Sin secret SIGNING_KEYSTORE_BASE64: el APK no se podrá instalar como actualización."
           fi
+      - name: Verificar la clave de firma
+        if: env.SIGNING_KEYSTORE_FILE != ''
+        env:
+          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+        run: |
+          PW=$(printf '%s' "$SIGNING_STORE_PASSWORD" | tr -d ' \r\n\t')
+          AL=$(printf '%s' "$SIGNING_KEY_ALIAS" | tr -d ' \r\n\t')
+          if ! keytool -list -keystore "$SIGNING_KEYSTORE_FILE" -storepass "$PW" > /dev/null 2>&1; then
+            echo "::error::SIGNING_STORE_PASSWORD no corresponde a la clave de SIGNING_KEYSTORE_BASE64. Vuelva a pegar la contraseña (24 caracteres) desde SECRETS_GITHUB.txt."; exit 1
+          fi
+          if ! keytool -list -keystore "$SIGNING_KEYSTORE_FILE" -storepass "$PW" -alias "$AL" > /dev/null 2>&1; then
+            echo "::error::SIGNING_KEY_ALIAS debe ser exactamente: geodensidad"; exit 1
+          fi
+          echo "Clave de firma verificada."
       - name: Compilar APK
         env:
           SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}

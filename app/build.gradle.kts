@@ -37,9 +37,10 @@ android {
         if (!ks.isNullOrBlank() && file(ks).exists()) {
             create("fija") {
                 storeFile = file(ks)
-                storePassword = System.getenv("SIGNING_STORE_PASSWORD")
-                keyAlias = System.getenv("SIGNING_KEY_ALIAS")
-                keyPassword = System.getenv("SIGNING_KEY_PASSWORD")
+                // .trim(): tolera espacios o saltos de línea pegados por error en los Secrets
+                storePassword = System.getenv("SIGNING_STORE_PASSWORD")?.trim()
+                keyAlias = System.getenv("SIGNING_KEY_ALIAS")?.trim()
+                keyPassword = (System.getenv("SIGNING_KEY_PASSWORD")?.trim()).takeUnless { it.isNullOrEmpty() } ?: System.getenv("SIGNING_STORE_PASSWORD")?.trim()
             }
         }
         if (keystoreProps.getProperty("storeFile") != null) {
