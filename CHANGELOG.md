@@ -1,6 +1,8 @@
 # Changelog
 
-## 1.2.x — 2026-11-25
+## 1.2.x — 2026-11-26
+- **Firma a mano**: al pulsar PDF se pregunta si firmar. «Firmar» abre un recuadro para firmar con el dedo, primero quien elabora y luego quien recibe/aprueba (con su nombre, botón Borrar para empezar de nuevo y opción «Sin firma»); luego se genera el PDF con las firmas en los recuadros ELABORÓ y APROBÓ.
+- Las firmas quedan guardadas con el registro («Usar las firmas guardadas») y se incluyen en el respaldo.
 - Teclado numérico propio para A, B, D, F, H, I, J, L, Q, R: solo dígitos y **coma** (sin punto), borrar, limpiar, Anterior, **Siguiente** (en el orden del Excel, y pasa a la siguiente densidad) y Listo.
 - El campo activo se desplaza solo para quedar visible sobre el teclado; los campos de texto también se desplazan al enfocarse o con «Siguiente».
 - Diseño adaptable: ancho máximo centrado en tablets/horizontal; teclado compacto en pantallas bajas; márgenes correctos con barras del sistema y teclado.

@@ -22,6 +22,7 @@ class AppContainer(val context: Context) {
     val pdf get() = PdfService(context, pdfWriterFactory)
     val respaldo get() = Respaldo(context, { db }, ::closeDb)
     val intercambio get() = Intercambio(context) { db }
+    val firmas get() = com.geodensidad.app.report.Firmas(context)
     /** Archivo .xlsx recibido desde otra app (Abrir con / Compartir), pendiente de importar. */
     val archivoRecibido = kotlinx.coroutines.flow.MutableStateFlow<android.net.Uri?>(null)
 }

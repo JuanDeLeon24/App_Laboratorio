@@ -5,6 +5,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import android.content.Intent
@@ -151,16 +152,27 @@ class RegistroViewModel(private val c: AppContainer, h: SavedStateHandle) : View
         }
     }
 
-    fun pdf(abrir: (File) -> Unit) {
+    fun pdf(conFirmas: Boolean, abrir: (File) -> Unit) {
         val r = registro.value ?: return
         if (generando.value) return
         generando.value = true
         viewModelScope.launch {
             job?.cancel(); guardar()
-            runCatching { c.pdf.generar(r) }.onSuccess(abrir).onFailure { mensaje.value = "No se generó el PDF: ${it.message}" }
+            trabajosFirma.toList().forEach { it.join() } // las firmas recién dibujadas deben estar guardadas
+            runCatching { c.pdf.generar(registro.value ?: r, conFirmas) }.onSuccess(abrir).onFailure { mensaje.value = "No se generó el PDF: ${it.message}" }
             generando.value = false
         }
     }
+
+    fun hayFirmas(): Boolean = registro.value?.let { r -> com.geodensidad.app.report.Firmas.Rol.entries.any { c.firmas.existe(r.id, it) } } ?: false
+
+    /** Guarda (o borra, si no hay trazos) la firma de un rol y actualiza el nombre correspondiente. */
+    fun firmar(rol: com.geodensidad.app.report.Firmas.Rol, nombre: String, trazos: List<com.geodensidad.app.report.Trazo>) {
+        val r = registro.value ?: return
+        editar { if (rol == com.geodensidad.app.report.Firmas.Rol.ELABORO) it.copy(elaboro = nombre) else it.copy(aprobo = nombre) }
+        trabajosFirma += viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) { c.firmas.guardar(r.id, rol, trazos) }
+    }
+    private val trabajosFirma = mutableListOf<Job>()
 
     override fun onCleared() {
         val r = registro.value
@@ -181,6 +193,8 @@ fun RegistroScreen(volver: () -> Unit) {
     val snack = remember { SnackbarHostState() }
     ErrorSnack(vm.mensaje.collectAsStateWithLifecycle().value, { vm.mensaje.value = null }, snack)
     var borrar by remember { mutableStateOf<Int?>(null) }
+    /** Flujo del PDF: null = cerrado; "preguntar" = ¿firmar?; "elaboro"/"aprobo" = firmando. */
+    var pasoPdf by remember { mutableStateOf<String?>(null) }
     /** Campo numérico activo: "<densidad>.<campo>" (p. ej. "0.a"); null = teclado propio oculto. */
     var activo by rememberSaveable { mutableStateOf<String?>(null) }
     val teclado = LocalSoftwareKeyboardController.current
@@ -204,7 +218,7 @@ fun RegistroScreen(volver: () -> Unit) {
                         .putExtra(Intent.EXTRA_STREAM, uri).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION), "Compartir Excel"))
                 } }) { Icon(Icons.Default.TableView, "Exportar a Excel") }
                 if (generando) CircularProgressIndicator(Modifier.size(24.dp), color = Color.White, strokeWidth = 2.dp)
-                else IconButton(onClick = { vm.pdf(abrirPdf) }) { Icon(Icons.Default.PictureAsPdf, "Generar PDF") }
+                else IconButton(onClick = { activo = null; pasoPdf = "preguntar" }) { Icon(Icons.Default.PictureAsPdf, "Generar PDF") }
             }
         },
         snackbarHost = { SnackbarHost(snack) },
@@ -273,6 +287,28 @@ fun RegistroScreen(volver: () -> Unit) {
         }
         }
         }
+    }
+    val rr = reg
+    when (pasoPdf) {
+        "preguntar" -> AlertDialog(onDismissRequest = { pasoPdf = null },
+            title = { Text("Generar PDF") },
+            text = { Text("¿Desea firmar el formato a mano (quien elabora y quien recibe/aprueba)?") },
+            confirmButton = {
+                Column(horizontalAlignment = Alignment.End) {
+                    Button(onClick = { pasoPdf = "elaboro" }, modifier = Modifier.testTag("pdf_firmar")) { Text("Firmar") }
+                    if (vm.hayFirmas()) TextButton(onClick = { pasoPdf = null; vm.pdf(true, abrirPdf) }) { Text("Usar las firmas guardadas") }
+                    TextButton(onClick = { pasoPdf = null; vm.pdf(false, abrirPdf) }, modifier = Modifier.testTag("pdf_sin_firmas")) { Text("Generar sin firmas") }
+                }
+            },
+            dismissButton = { TextButton(onClick = { pasoPdf = null }) { Text("Cancelar") } })
+        "elaboro" -> if (rr != null) DialogoFirma("Firma de quien elabora", rr.elaboro, "Paso 1 de 2 · ELABORÓ", "Siguiente",
+            onAceptar = { nom, t -> vm.firmar(com.geodensidad.app.report.Firmas.Rol.ELABORO, nom, t); pasoPdf = "aprobo" },
+            onOmitir = { nom -> vm.firmar(com.geodensidad.app.report.Firmas.Rol.ELABORO, nom, emptyList()); pasoPdf = "aprobo" },
+            onCancelar = { pasoPdf = null })
+        "aprobo" -> if (rr != null) DialogoFirma("Firma de quien recibe / aprueba", rr.aprobo, "Paso 2 de 2 · APROBÓ", "Firmar y generar PDF",
+            onAceptar = { nom, t -> vm.firmar(com.geodensidad.app.report.Firmas.Rol.APROBO, nom, t); pasoPdf = null; vm.pdf(true, abrirPdf) },
+            onOmitir = { nom -> vm.firmar(com.geodensidad.app.report.Firmas.Rol.APROBO, nom, emptyList()); pasoPdf = null; vm.pdf(true, abrirPdf) },
+            onCancelar = { pasoPdf = null })
     }
     borrar?.let { i -> ConfirmDialog("Eliminar densidad ${i + 1}", "Se borrarán sus datos.", "Eliminar", true, onConfirm = { vm.eliminarDensidad(i) }, onDismiss = { borrar = null }) }
 }

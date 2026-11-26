@@ -142,3 +142,39 @@ class IntercambioExcelTest {
         Unit
     }
 }
+
+@RunWith(RobolectricTestRunner::class)
+class FirmasTest {
+    private val c get() = ApplicationProvider.getApplicationContext<GeoDensidadApp>().container
+    private val trazo = (0..40).map { k -> 0.1f + k * 0.02f to 0.5f + 0.2f * kotlin.math.sin(k / 4.0).toFloat() }
+
+    @Test fun firmaSeGuardaYVaAlPdf() = runBlocking {
+        c.pdfWriterFactory = { PdfBoxWriter() }
+        val r = registroDelExcel()
+        val f = c.firmas.guardar(r.id, com.geodensidad.app.report.Firmas.Rol.ELABORO, listOf(trazo))!!
+        assertTrue(f.exists() && f.length() > 100)
+        assertNotNull(c.firmas.paraPdf(r.id, com.geodensidad.app.report.Firmas.Rol.ELABORO))
+        assertNull(c.firmas.paraPdf(r.id, com.geodensidad.app.report.Firmas.Rol.APROBO))
+        val conFirma = c.pdf.generar(r, conFirmas = true)
+        val sinFirma = c.pdf.generar(r, conFirmas = false)
+        fun imagenes(pdf: File) = org.apache.pdfbox.Loader.loadPDF(pdf).use { d -> d.pages.sumOf { p -> p.resources.xObjectNames.count() } }
+        assertEquals(imagenes(sinFirma) + 1, imagenes(conFirma))
+        val out = File(System.getProperty("geodensidad.outDir") ?: "build/ejemplos").apply { mkdirs() }
+        conFirma.copyTo(File(out, "planilla_con_firma.pdf"), true)
+        // sin trazos = se borra la firma
+        assertNull(c.firmas.guardar(r.id, com.geodensidad.app.report.Firmas.Rol.ELABORO, emptyList()))
+        assertFalse(c.firmas.existe(r.id, com.geodensidad.app.report.Firmas.Rol.ELABORO))
+        Unit
+    }
+
+    @Test fun firmasViajanEnElRespaldo() = runBlocking {
+        val r = registroDelExcel()
+        c.db.registros().guardar(r)
+        c.firmas.guardar(r.id, com.geodensidad.app.report.Firmas.Rol.APROBO, listOf(trazo))
+        val zip = ByteArrayOutputStream().also { c.respaldo.exportar(it) }.toByteArray()
+        c.firmas.borrar(r.id, com.geodensidad.app.report.Firmas.Rol.APROBO)
+        c.respaldo.restaurar(zip.inputStream())
+        assertTrue(c.firmas.existe(r.id, com.geodensidad.app.report.Firmas.Rol.APROBO))
+        Unit
+    }
+}

@@ -163,17 +163,30 @@ class Layout(
         y += h + 5f
     }
 
-    fun signatures(labels: List<Pair<String, String?>>) {
-        val h = 70f
+    /** Recuadro de firma: etiqueta, imagen opcional de la firma manuscrita (proporción conservada), línea y nombre. */
+    data class FirmaCaja(val etiqueta: String, val nombre: String?, val imagen: String? = null, val pxW: Int = 0, val pxH: Int = 0)
+
+    fun signatures(labels: List<Pair<String, String?>>) = firmas(labels.map { FirmaCaja(it.first, it.second) })
+
+    fun firmas(cajas: List<FirmaCaja>) {
+        val h = 92f
         ensure(h)
-        val w = width / labels.size
-        labels.forEachIndexed { i, (label, name) ->
+        val w = width / cajas.size
+        cajas.forEachIndexed { i, c ->
             val x = left + i * w
             add(Cmd.Rect(x + 4f, y, w - 8f, h - 6f, null, RColor.GRID, 0.6f))
-            add(Cmd.Text(label, x + 10f, y + 13f, Styles.label.copy(bold = true)))
-            add(Cmd.Line(x + 10f, y + 44f, x + w - 14f, y + 44f, RColor.SLATE, 0.5f))
-            add(Cmd.Text("Firma", x + 10f, y + 53f, Styles.small))
-            add(Cmd.Text("Nombre: ${name ?: "________________"}", x + 10f, y + 62f, Styles.small))
+            add(Cmd.Text(c.etiqueta, x + 10f, y + 13f, Styles.label.copy(bold = true)))
+            val lineaY = y + 64f
+            if (c.imagen != null && c.pxW > 0 && c.pxH > 0) {
+                val maxW = w - 28f; val maxH = 46f
+                val r = c.pxW.toFloat() / c.pxH
+                var iw = maxW; var ih = iw / r
+                if (ih > maxH) { ih = maxH; iw = ih * r }
+                add(Cmd.Image(c.imagen, x + 10f + (maxW - iw) / 2, lineaY - ih - 1f, iw, ih))
+            }
+            add(Cmd.Line(x + 10f, lineaY, x + w - 14f, lineaY, RColor.SLATE, 0.5f))
+            add(Cmd.Text("Firma", x + 10f, lineaY + 9f, Styles.small))
+            add(Cmd.Text("Nombre: ${c.nombre?.takeIf { it.isNotBlank() } ?: "________________"}", x + 10f, lineaY + 19f, Styles.small))
         }
         y += h + 4f
     }

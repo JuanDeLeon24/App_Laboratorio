@@ -23,6 +23,9 @@ data class PlanillaData(
     val observaciones: String,
     val elaboro: String,
     val aprobo: String,
+    /** Imágenes PNG de las firmas manuscritas (ruta, ancho, alto en px); null = sin firma. */
+    val firmaElaboro: Triple<String, Int, Int>? = null,
+    val firmaAprobo: Triple<String, Int, Int>? = null,
 )
 
 /** Construye la planilla (filas del Excel) y su resumen a partir de los resultados del motor. */
@@ -104,7 +107,10 @@ object PlanillaRenderer {
         l.heading("Observaciones", 2)
         l.paragraph(d.observaciones.ifBlank { " " })
         l.space(6f)
-        l.signatures(listOf("ELABORÓ" to d.elaboro.ifBlank { null }, "APROBÓ" to d.aprobo.ifBlank { null }))
+        l.firmas(listOf(
+            Layout.FirmaCaja("ELABORÓ", d.elaboro, d.firmaElaboro?.first, d.firmaElaboro?.second ?: 0, d.firmaElaboro?.third ?: 0),
+            Layout.FirmaCaja("APROBÓ", d.aprobo, d.firmaAprobo?.first, d.firmaAprobo?.second ?: 0, d.firmaAprobo?.third ?: 0),
+        ))
         return ReportRenderer.decorate(l, d.template, d.issue)
     }
 }

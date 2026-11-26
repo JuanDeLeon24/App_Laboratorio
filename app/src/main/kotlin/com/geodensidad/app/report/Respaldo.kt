@@ -31,7 +31,8 @@ class Respaldo(private val context: Context, private val db: () -> AppDatabase, 
             File(dbFile.path + "-wal").takeIf { it.exists() && it.length() > 0 }?.copyTo(File(work, AppDatabase.NAME + "-wal"), true)
             n = d.registros().contar()
         }
-        val entries = work.listFiles()!!.associate { "db/${it.name}" to it }
+        val entries = work.listFiles()!!.associate { "db/${it.name}" to it } +
+            (File(context.filesDir, "firmas").listFiles()?.filter { it.isFile && it.name.endsWith(".png") }?.associate { "firmas/${it.name}" to it } ?: emptyMap())
         BackupArchive.write(out, entries) { files ->
             BackupManifest(BackupArchive.FORMAT, BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE, AppDatabase.VERSION, ConoArenaLegacy.ENGINE_FULL_ID,
                 "1.1.0", OffsetDateTime.now().toString(), counts = mapOf("registros" to n), files = files)
@@ -63,6 +64,11 @@ class Respaldo(private val context: Context, private val db: () -> AppDatabase, 
         val dbFile = context.getDatabasePath(AppDatabase.NAME)
         listOf("", "-wal", "-shm").forEach { File(dbFile.path + it).delete() }
         nuevo.copyTo(dbFile, true)
+        val firmasDir = File(context.filesDir, "firmas")
+        File(staging, "firmas").takeIf { it.isDirectory }?.let { origen ->
+            firmasDir.deleteRecursively(); firmasDir.mkdirs()
+            origen.listFiles()?.forEach { it.copyTo(File(firmasDir, it.name), true) }
+        }
         staging.deleteRecursively()
         n
     }

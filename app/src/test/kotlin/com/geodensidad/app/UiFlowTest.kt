@@ -1,6 +1,7 @@
 package com.geodensidad.app
 
 import android.graphics.Bitmap
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import kotlinx.coroutines.flow.first
@@ -99,5 +100,27 @@ class UiFlowTest {
         lista().performScrollToNode(hasText("Resumen del registro"))
         esperar("NO CUMPLE")
         shot("07_registro_resumen")
+        // Firmar a mano y generar el PDF
+        c.pdfWriterFactory = { PdfBoxWriter() }
+        rule.onNodeWithContentDescription("Generar PDF").performClick()
+        esperar("¿Desea firmar")
+        rule.onNodeWithTag("pdf_firmar").performClick()
+        esperar("Firma de quien elabora")
+        fun firmar() = rule.onNodeWithTag("pad_firma").performTouchInput { swipe(Offset(width * 0.15f, height * 0.6f), Offset(width * 0.8f, height * 0.4f), 400) }
+        firmar()
+        rule.onNodeWithTag("firma_borrar").performClick()   // borrar y empezar de nuevo
+        esperar("Firme aquí con el dedo")
+        firmar(); firmar()
+        shot("08_firma_elaboro")
+        rule.onNodeWithTag("firma_aceptar").performClick()
+        esperar("Firma de quien recibe")
+        firmar()
+        rule.onNodeWithTag("firma_aceptar").performClick()
+        val id = runBlocking { c.db.registros().todos().first().single().id }
+        rule.waitUntil(15_000) {
+            org.robolectric.shadows.ShadowLooper.idleMainLooper(300, java.util.concurrent.TimeUnit.MILLISECONDS)
+            c.firmas.existe(id, com.geodensidad.app.report.Firmas.Rol.ELABORO) && c.firmas.existe(id, com.geodensidad.app.report.Firmas.Rol.APROBO) &&
+                (File(c.context.filesDir, "pdf").listFiles()?.isNotEmpty() == true)
+        }
     }
 }

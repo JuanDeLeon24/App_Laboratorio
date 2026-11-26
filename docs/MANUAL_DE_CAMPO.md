@@ -9,7 +9,11 @@
    - Un campo vacío es un dato faltante, no un cero.
 5. **Resumen del registro**: tabla de todas las densidades, compactación promedio y criterio Dm − k·s ≥ 0,95·De. Toque una fila para ir a esa densidad.
 6. **Observaciones y firmas**: Observaciones, Elaboró, Aprobó.
-7. **PDF**: icono PDF arriba a la derecha; se abre o se comparte.
+7. **PDF y firmas**: icono PDF arriba a la derecha. La app pregunta si desea firmar:
+   - *Firmar*: firma con el dedo quien elabora (paso 1) y quien recibe/aprueba (paso 2). *Borrar* limpia el recuadro para empezar de nuevo; *Sin firma* deja ese recuadro en blanco. Al final se genera el PDF con las firmas.
+   - *Usar las firmas guardadas*: reutiliza las últimas firmas de ese registro.
+   - *Generar sin firmas*: PDF con los recuadros vacíos para firmar en papel.
+   La firma manuscrita en pantalla es una imagen de la firma; no es una firma electrónica certificada.
 
 Todo se guarda solo. En la lista, el menú ⋮ de cada registro permite crear un registro nuevo con el mismo encabezado o eliminarlo.
 **Respaldo**: menú ⋮ de la lista → *Guardar respaldo* (archivo .zip, no cifrado). *Restaurar respaldo* reemplaza los registros actuales (antes guarda una copia automática).

@@ -34,7 +34,8 @@ class PdfService(private val context: Context, private val writerFactory: () -> 
             DecimalText.storedToDouble(d.h), DecimalText.storedToDouble(r.i), DecimalText.storedToDouble(d.j), DecimalText.storedToDouble(d.l), r.calcular(d))
     }
 
-    suspend fun generar(r: Registro): File = withContext(Dispatchers.Default) {
+    /** @param conFirmas incluye las firmas manuscritas guardadas del registro (si existen). */
+    suspend fun generar(r: Registro, conFirmas: Boolean = false): File = withContext(Dispatchers.Default) {
         val logo = asset("logo.png")
         val now = OffsetDateTime.now()
         val code = "REG-${r.registro.ifBlank { "SN" }}-${now.format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"))}"
@@ -52,9 +53,11 @@ class PdfService(private val context: Context, private val writerFactory: () -> 
             columnas = cols.map { it.numero.toString() },
             filas = PlanillaBuilder.filas(cols, q, rr),
             resumen = resumen, notas = notas, observaciones = r.observaciones, elaboro = r.elaboro, aprobo = r.aprobo,
+            firmaElaboro = if (conFirmas) Firmas(context).paraPdf(r.id, Firmas.Rol.ELABORO) else null,
+            firmaAprobo = if (conFirmas) Firmas(context).paraPdf(r.id, Firmas.Rol.APROBO) else null,
         )
         val dir = File(context.filesDir, "pdf").apply { mkdirs() }
-        val out = File(dir, "$code.pdf")
+        val out = File(dir, "$code-${System.currentTimeMillis() % 1000}.pdf")
         val w = writerFactory()
         try {
             val pages = PlanillaRenderer.render(data, w)
